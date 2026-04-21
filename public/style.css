@@ -1,90 +1,417 @@
+/* ===== 富途牛牛風格 ===== */
+:root {
+  --navy:   #0D1B2A;
+  --navy2:  #152033;
+  --green:  #00C37A;
+  --green2: #00A868;
+  --bg:     #F0F2F5;
+  --card:   #FFFFFF;
+  --border: #E5E8EC;
+  --text1:  #1A2332;
+  --text2:  #6B7280;
+  --text3:  #9CA3AF;
+  --red:    #F5222D;
+}
+
+* { box-sizing: border-box; }
+
 body {
-  background-color: #f8f9fa;
+  background: var(--bg);
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  color: var(--text1);
+  margin: 0;
 }
 
-.card {
-  border: none;
-  border-radius: 12px;
+/* ===== 頂部導航欄 ===== */
+.top-bar {
+  background: var(--navy);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  height: 56px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
-.nav-tabs .nav-link {
-  color: #555;
+.top-bar .logo {
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.top-bar .logo-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--green);
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* ===== 分頁標籤 ===== */
+.futu-tabs {
+  background: var(--navy2);
+  padding: 0 24px;
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.futu-tab {
+  color: rgba(255,255,255,0.55);
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 14px 20px;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: block;
+  user-select: none;
+}
+
+.futu-tab:hover {
+  color: rgba(255,255,255,0.85);
+}
+
+.futu-tab.active {
+  color: var(--green);
+  border-bottom-color: var(--green);
+}
+
+/* ===== 主內容區 ===== */
+.main-content {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+/* ===== 卡片 ===== */
+.futu-card {
+  background: var(--card);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.futu-card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.futu-card-body {
+  padding: 20px;
+}
+
+/* ===== 表單元素 ===== */
+.futu-label {
+  font-size: 0.82rem;
+  color: var(--text2);
+  margin-bottom: 6px;
+  display: block;
   font-weight: 500;
 }
 
-.nav-tabs .nav-link.active {
-  font-weight: 700;
-  color: #0d6efd;
+.futu-input {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  color: var(--text1);
+  background: #FAFBFC;
+  transition: border-color 0.2s;
+  width: 100%;
+  outline: none;
 }
 
-/* 業務類型單選按鈕 */
+.futu-input:focus {
+  border-color: var(--green);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(0,195,122,0.12);
+}
+
+/* ===== 業務類型選項 ===== */
 .biz-option {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 10px 14px;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 0.95rem;
-  transition: border-color 0.15s, background 0.15s;
+  font-size: 0.88rem;
+  color: var(--text1);
+  transition: all 0.15s;
   user-select: none;
+  background: #FAFBFC;
 }
 
 .biz-option:hover {
-  border-color: #86b7fe;
-  background: #f0f6ff;
+  border-color: var(--green);
+  background: #F0FDF8;
+  color: var(--green2);
 }
 
 .biz-option input[type="radio"] {
-  accent-color: #0d6efd;
-  width: 16px;
-  height: 16px;
+  accent-color: var(--green);
+  width: 15px;
+  height: 15px;
   flex-shrink: 0;
 }
 
 .biz-option:has(input:checked) {
-  border-color: #0d6efd;
-  background: #e8f0fe;
+  border-color: var(--green);
+  background: #ECFDF5;
+  color: var(--green2);
   font-weight: 600;
 }
 
-/* 匯總卡片 */
-.summary-card {
-  border-radius: 10px;
+/* ===== 按鈕 ===== */
+.btn-futu {
+  background: var(--green);
+  color: #fff;
   border: none;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  border-radius: 4px;
+  padding: 9px 24px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
 }
 
-.summary-card .count {
-  font-size: 2rem;
+.btn-futu:hover { background: var(--green2); }
+.btn-futu:disabled { background: #9CA3AF; cursor: not-allowed; }
+
+.btn-futu-outline {
+  background: transparent;
+  color: var(--green);
+  border: 1px solid var(--green);
+  border-radius: 4px;
+  padding: 5px 14px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-futu-outline:hover {
+  background: var(--green);
+  color: #fff;
+}
+
+.btn-futu-ghost {
+  background: transparent;
+  color: var(--text2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 5px 14px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-futu-ghost:hover {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+/* ===== 篩選標籤 ===== */
+.filter-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.filter-tab {
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text2);
+  transition: all 0.15s;
+}
+
+.filter-tab:hover {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.filter-tab.active {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+}
+
+/* ===== 匯總數字卡片 ===== */
+.stat-card {
+  background: var(--navy);
+  border-radius: 8px;
+  padding: 14px 16px;
+  text-align: center;
+}
+
+.stat-card .stat-label {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 6px;
+}
+
+.stat-card .stat-num {
+  font-size: 1.8rem;
   font-weight: 700;
-  color: #0d6efd;
-  line-height: 1.2;
+  color: var(--green);
+  line-height: 1;
 }
 
-.summary-card .label {
+.stat-card.total {
+  background: linear-gradient(135deg, #0D1B2A, #1a3a5c);
+}
+
+.stat-card.total .stat-num {
+  color: #FFD700;
+}
+
+/* ===== 今日記錄 badge ===== */
+.count-badge {
+  background: var(--green);
+  color: #fff;
+  border-radius: 20px;
+  padding: 2px 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+/* ===== 刪除按鈕 ===== */
+.btn-delete {
+  background: none;
+  border: none;
+  color: var(--text3);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  transition: color 0.15s;
+  line-height: 1;
+}
+
+.btn-delete:hover { color: var(--red); }
+
+/* ===== 表格 ===== */
+.futu-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.futu-table thead th {
+  background: #F7F8FA;
+  color: var(--text2);
+  font-weight: 600;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
   font-size: 0.8rem;
-  color: #666;
-  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
-tfoot tr td {
-  border-top: 2px solid #dee2e6;
+.futu-table tbody tr {
+  border-bottom: 1px solid #F3F4F6;
+  transition: background 0.1s;
 }
 
+.futu-table tbody tr:hover { background: #F9FAFB; }
+
+.futu-table td {
+  padding: 10px 14px;
+  color: var(--text1);
+}
+
+.futu-table tfoot td {
+  padding: 10px 14px;
+  font-weight: 700;
+  border-top: 2px solid var(--border);
+  background: #F7F8FA;
+  color: var(--text1);
+}
+
+/* ===== 業務類型標籤 ===== */
+.biz-badge {
+  display: inline-block;
+  background: #ECFDF5;
+  color: var(--green2);
+  border: 1px solid #A7F3D0;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+/* ===== 報告格式框 ===== */
 .report-pre {
-  background: #eef2ff;
-  border: 1px solid #c7d2fe;
-  border-radius: 10px;
-  padding: 16px 20px;
-  font-family: monospace;
-  font-size: 0.92rem;
-  line-height: 1.8;
+  background: var(--navy);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 18px 22px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.88rem;
+  line-height: 1.9;
   white-space: pre-wrap;
   word-break: break-all;
+  color: #E2E8F0;
 }
 
-#submitMsg {
-  font-size: 0.95rem;
+.report-pre::first-line {
+  color: var(--green);
+  font-weight: 700;
 }
+
+/* ===== 自訂範圍輸入 ===== */
+#customRangeInputs input[type="date"] {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  background: #fff;
+  outline: none;
+  color: var(--text1);
+}
+
+#customRangeInputs input[type="date"]:focus {
+  border-color: var(--green);
+}
+
+/* ===== 空狀態 ===== */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text3);
+  font-size: 0.9rem;
+}
+
+/* ===== 提示訊息 ===== */
+.update-notice {
+  background: #EFF6FF;
+  border-left: 3px solid #3B82F6;
+  border-radius: 0 6px 6px 0;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  color: #1D4ED8;
+  margin-bottom: 16px;
+}
+
+#submitMsg { font-size: 0.88rem; }

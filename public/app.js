@@ -11,7 +11,6 @@ let currentFilter = 'all';
 let customRangeStart = null;
 let customRangeEnd = null;
 
-// 設置今天日期為默認值
 const todayStr = new Date().toLocaleDateString('sv-SE');
 document.getElementById('dateInput').value = todayStr;
 
@@ -28,10 +27,9 @@ document.querySelectorAll('[data-tab]').forEach(link => {
   });
 });
 
-// 日期變更時刷新今日記錄
 document.getElementById('dateInput').addEventListener('change', () => loadTodayRecords());
 
-// 牛牛號只允許輸入數字（每行一個）
+// 牛牛號只允許輸入數字
 document.getElementById('accountInput').addEventListener('input', function () {
   const pos = this.selectionStart;
   const cleaned = this.value.replace(/[^\d\n]/g, '');
@@ -48,9 +46,9 @@ async function submitRecord() {
     .split('\n').map(s => s.trim()).filter(s => s.length > 0);
   const bizType = document.querySelector('input[name="bizType"]:checked');
 
-  if (!date) { showMsg('請選擇日期', 'danger'); return; }
-  if (accounts.length === 0) { showMsg('請輸入牛牛號', 'danger'); document.getElementById('accountInput').focus(); return; }
-  if (!bizType) { showMsg('請選擇業務類型', 'danger'); return; }
+  if (!date) { showMsg('請選擇日期', 'error'); return; }
+  if (accounts.length === 0) { showMsg('請輸入牛牛號', 'error'); document.getElementById('accountInput').focus(); return; }
+  if (!bizType) { showMsg('請選擇業務類型', 'error'); return; }
 
   const btn = document.getElementById('submitBtn');
   btn.disabled = true;
@@ -76,7 +74,7 @@ async function submitRecord() {
     document.getElementById('accountInput').focus();
     loadTodayRecords();
   } catch (e) {
-    showMsg('✗ 失敗：' + e.message, 'danger');
+    showMsg('✗ 失敗：' + e.message, 'error');
   }
 
   btn.disabled = false;
@@ -85,7 +83,9 @@ async function submitRecord() {
 function showMsg(text, type) {
   const el = document.getElementById('submitMsg');
   el.textContent = text;
-  el.className = `text-${type} fw-semibold`;
+  const colors = { success: '#00C37A', error: '#F5222D', muted: '#9CA3AF' };
+  el.style.color = colors[type] || '#9CA3AF';
+  el.style.fontWeight = type === 'success' ? '600' : '400';
   if (type === 'success') setTimeout(() => { el.textContent = ''; }, 3000);
 }
 
@@ -94,29 +94,27 @@ async function loadTodayRecords() {
   document.getElementById('todayLoading').style.display = 'block';
   document.getElementById('todayEmpty').style.display = 'none';
   document.getElementById('todayTableWrapper').style.display = 'none';
+  document.getElementById('updateNotice').style.display = 'none';
 
-  const dateLabel = date === todayStr ? '今日記錄' : `${date} 的記錄`;
-  document.getElementById('todayLabel').textContent = dateLabel;
+  document.getElementById('todayLabel').textContent = date === todayStr ? '今日記錄' : `${date} 的記錄`;
 
   try {
     const records = await fetchAllRecords();
     allRecords = records;
-    const todayRecs = records.filter(r => r.fields['日期'] === date)
+    const dayRecs = records.filter(r => r.fields['日期'] === date)
       .sort((a, b) => b.record_id.localeCompare(a.record_id));
 
-    document.getElementById('todayCount').textContent = todayRecs.length;
+    document.getElementById('todayCount').textContent = dayRecs.length;
 
-    if (todayRecs.length === 0) {
+    if (dayRecs.length === 0) {
       document.getElementById('todayEmpty').style.display = 'block';
     } else {
       document.getElementById('todayTableWrapper').style.display = 'block';
-      document.getElementById('todayTableBody').innerHTML = todayRecs.map(r => `
+      document.getElementById('todayTableBody').innerHTML = dayRecs.map(r => `
         <tr>
           <td>${r.fields['牛牛號'] || '-'}</td>
-          <td><span class="badge bg-secondary">${r.fields['業務類型'] || '-'}</span></td>
-          <td>
-            <button class="btn btn-sm btn-link text-danger p-0" onclick="deleteRecord('${r.record_id}')" title="刪除">✕</button>
-          </td>
+          <td><span class="biz-badge">${r.fields['業務類型'] || '-'}</span></td>
+          <td><button class="btn-delete" onclick="deleteRecord('${r.record_id}')" title="刪除">✕</button></td>
         </tr>`).join('');
     }
   } catch (e) {
@@ -143,16 +141,9 @@ async function deleteRecord(recordId, source) {
 // ===== 統計頁面 =====
 function filterStats(type) {
   currentFilter = type;
-  const btnStyles = {
-    all: 'btn-outline-primary',
-    today: 'btn-outline-primary',
-    week: 'btn-outline-primary',
-    month: 'btn-outline-primary',
-    custom: 'btn-outline-secondary'
-  };
-  Object.keys(btnStyles).forEach(t => {
+  ['all', 'today', 'week', 'month', 'custom'].forEach(t => {
     document.getElementById(`btn-${t}`).className =
-      `btn btn-sm ${t === type ? 'btn-primary' : btnStyles[t]}`;
+      `filter-tab${t === type ? ' active' : ''}`;
   });
   const rangeInputs = document.getElementById('customRangeInputs');
   rangeInputs.style.display = type === 'custom' ? 'flex' : 'none';
@@ -177,7 +168,7 @@ async function loadStats() {
     allRecords = await fetchAllRecords();
     renderStats();
   } catch (e) {
-    document.getElementById('statsLoading').innerHTML = '載入失敗：' + e.message;
+    document.getElementById('statsLoading').textContent = '載入失敗：' + e.message;
     return;
   }
   document.getElementById('statsLoading').style.display = 'none';
@@ -190,10 +181,8 @@ function getFilteredRecords() {
       const dateStr = r.fields['日期'];
       if (!dateStr) return false;
       if (currentFilter === 'all') return true;
+      if (currentFilter === 'today') return dateStr === todayStr;
       const d = new Date(dateStr);
-      if (currentFilter === 'today') {
-        return dateStr === todayStr;
-      }
       if (currentFilter === 'month') {
         return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
       }
@@ -218,7 +207,6 @@ function getFilteredRecords() {
 function renderStats() {
   const records = getFilteredRecords();
 
-  // 各業務類型計數
   const totals = {};
   FIELDS.forEach(f => { totals[f] = 0; });
   records.forEach(r => {
@@ -227,24 +215,19 @@ function renderStats() {
   });
   const grandTotal = records.length;
 
-  const cardsHtml = [
+  document.getElementById('summaryCards').innerHTML = [
     ...FIELDS.map(f => `
-      <div class="col-6 col-md-4 col-lg-2">
-        <div class="card summary-card p-3 text-center">
-          <div class="label">${f}</div>
-          <div class="count">${totals[f]}</div>
-        </div>
+      <div class="stat-card">
+        <div class="stat-label">${f}</div>
+        <div class="stat-num">${totals[f]}</div>
       </div>`),
-    `<div class="col-6 col-md-4 col-lg-2">
-      <div class="card summary-card p-3 text-center" style="background:#e8f4ff">
-        <div class="label">總計</div>
-        <div class="count" style="color:#0a58ca">${grandTotal}</div>
-      </div>
+    `<div class="stat-card total">
+      <div class="stat-label">總計</div>
+      <div class="stat-num">${grandTotal}</div>
     </div>`
   ].join('');
-  document.getElementById('summaryCards').innerHTML = cardsHtml;
 
-  // 報告格式（只在本日顯示）
+  // 報告格式（本日專用）
   const reportBox = document.getElementById('reportBox');
   if (currentFilter === 'today') {
     reportBox.style.display = 'block';
@@ -268,14 +251,15 @@ function renderStats() {
     <tr>
       <td>${r.fields['日期'] || '-'}</td>
       <td>${r.fields['牛牛號'] || '-'}</td>
-      <td><span class="badge bg-secondary">${r.fields['業務類型'] || '-'}</span></td>
-      <td><button class="btn btn-sm btn-link text-danger p-0" onclick="deleteRecord('${r.record_id}', 'stats')" title="刪除">✕</button></td>
+      <td><span class="biz-badge">${r.fields['業務類型'] || '-'}</span></td>
+      <td><button class="btn-delete" onclick="deleteRecord('${r.record_id}', 'stats')" title="刪除">✕</button></td>
     </tr>`).join('');
 
   document.getElementById('tableFoot').innerHTML = `
-    <tr class="table-secondary">
-      <td colspan="2"><strong>合計</strong></td>
-      <td><strong>${grandTotal} 筆</strong></td>
+    <tr>
+      <td colspan="2">合計</td>
+      <td>${grandTotal} 筆</td>
+      <td></td>
     </tr>`;
 }
 
@@ -291,14 +275,11 @@ function generateReport(records) {
     if (count === 0) {
       lines.push(`${field}:`);
     } else {
-      // 計算每個牛牛號出現次數
       const countMap = {};
       fieldRecords.forEach(r => {
         const acc = r.fields['牛牛號'] || '';
         countMap[acc] = (countMap[acc] || 0) + 1;
       });
-
-      // 去重後按原順序排列，重複的加 (N份)
       const seen = new Set();
       const accountList = [];
       fieldRecords.forEach(r => {
@@ -308,7 +289,6 @@ function generateReport(records) {
           accountList.push(countMap[acc] > 1 ? `${acc} (${countMap[acc]}份)` : acc);
         }
       });
-
       lines.push(`${field}${count}: ${accountList.join(', ')}`);
     }
   });
@@ -320,12 +300,9 @@ async function copyReport() {
   const text = document.getElementById('reportText').textContent;
   await navigator.clipboard.writeText(text);
   const btn = event.target;
-  btn.textContent = '已複製！';
-  btn.className = 'btn btn-sm btn-success';
-  setTimeout(() => {
-    btn.textContent = '複製文字';
-    btn.className = 'btn btn-sm btn-outline-secondary';
-  }, 2000);
+  const orig = btn.textContent;
+  btn.textContent = '✓ 已複製';
+  setTimeout(() => { btn.textContent = orig; }, 2000);
 }
 
 async function fetchAllRecords() {
@@ -336,5 +313,4 @@ async function fetchAllRecords() {
   return data.data.items || [];
 }
 
-// 啟動
 loadTodayRecords();
