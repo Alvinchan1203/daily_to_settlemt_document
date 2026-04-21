@@ -31,6 +31,16 @@ document.querySelectorAll('[data-tab]').forEach(link => {
 // 日期變更時刷新今日記錄
 document.getElementById('dateInput').addEventListener('change', () => loadTodayRecords());
 
+// 牛牛號只允許輸入數字（每行一個）
+document.getElementById('accountInput').addEventListener('input', function () {
+  const pos = this.selectionStart;
+  const cleaned = this.value.replace(/[^\d\n]/g, '');
+  if (cleaned !== this.value) {
+    this.value = cleaned;
+    this.setSelectionRange(pos - 1, pos - 1);
+  }
+});
+
 // ===== 登記頁面 =====
 async function submitRecord() {
   const date = document.getElementById('dateInput').value;
