@@ -234,6 +234,15 @@ function renderStats() {
   ].join('');
   document.getElementById('summaryCards').innerHTML = cardsHtml;
 
+  // 報告格式（只在本日顯示）
+  const reportBox = document.getElementById('reportBox');
+  if (currentFilter === 'today') {
+    reportBox.style.display = 'block';
+    document.getElementById('reportText').textContent = generateReport(records);
+  } else {
+    reportBox.style.display = 'none';
+  }
+
   document.getElementById('statsLoading').style.display = 'none';
 
   if (records.length === 0) {
@@ -258,6 +267,55 @@ function renderStats() {
       <td colspan="2"><strong>合計</strong></td>
       <td><strong>${grandTotal} 筆</strong></td>
     </tr>`;
+}
+
+function generateReport(records) {
+  const d = new Date();
+  const dateStr = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
+  const lines = [dateStr, '*SETTLEMENT'];
+
+  FIELDS.forEach(field => {
+    const fieldRecords = records.filter(r => r.fields['業務類型'] === field);
+    const count = fieldRecords.length;
+
+    if (count === 0) {
+      lines.push(`${field}:`);
+    } else {
+      // 計算每個牛牛號出現次數
+      const countMap = {};
+      fieldRecords.forEach(r => {
+        const acc = r.fields['牛牛號'] || '';
+        countMap[acc] = (countMap[acc] || 0) + 1;
+      });
+
+      // 去重後按原順序排列，重複的加 (N份)
+      const seen = new Set();
+      const accountList = [];
+      fieldRecords.forEach(r => {
+        const acc = r.fields['牛牛號'] || '';
+        if (!seen.has(acc)) {
+          seen.add(acc);
+          accountList.push(countMap[acc] > 1 ? `${acc} (${countMap[acc]}份)` : acc);
+        }
+      });
+
+      lines.push(`${field}${count}: ${accountList.join(', ')}`);
+    }
+  });
+
+  return lines.join('\n');
+}
+
+async function copyReport() {
+  const text = document.getElementById('reportText').textContent;
+  await navigator.clipboard.writeText(text);
+  const btn = event.target;
+  btn.textContent = '已複製！';
+  btn.className = 'btn btn-sm btn-success';
+  setTimeout(() => {
+    btn.textContent = '複製文字';
+    btn.className = 'btn btn-sm btn-outline-secondary';
+  }, 2000);
 }
 
 async function fetchAllRecords() {
