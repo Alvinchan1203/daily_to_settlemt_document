@@ -135,8 +135,9 @@ function filterStats(type) {
   currentFilter = type;
   const btnStyles = {
     all: 'btn-outline-primary',
-    month: 'btn-outline-primary',
+    today: 'btn-outline-primary',
     week: 'btn-outline-primary',
+    month: 'btn-outline-primary',
     custom: 'btn-outline-secondary'
   };
   Object.keys(btnStyles).forEach(t => {
@@ -180,6 +181,9 @@ function getFilteredRecords() {
       if (!dateStr) return false;
       if (currentFilter === 'all') return true;
       const d = new Date(dateStr);
+      if (currentFilter === 'today') {
+        return dateStr === todayStr;
+      }
       if (currentFilter === 'month') {
         return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
       }
