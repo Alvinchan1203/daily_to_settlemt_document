@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>每日走袋統計</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container py-4" style="max-width:960px">
+
+    <div class="mb-4">
+      <h4 class="mb-0 fw-bold">每日走袋統計</h4>
+    </div>
+
+    <ul class="nav nav-tabs mb-4">
+      <li class="nav-item">
+        <a class="nav-link active" href="#" data-tab="input">登記業務</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#" data-tab="stats">統計查看</a>
+      </li>
+    </ul>
+
+    <!-- ===== 登記頁面 ===== -->
+    <div id="tab-input">
+      <div class="row g-4">
+
+        <!-- 左欄：輸入表單 -->
+        <div class="col-lg-5">
+          <div class="card shadow-sm h-100">
+            <div class="card-body p-4">
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">日期</label>
+                <input type="date" id="dateInput" class="form-control" style="max-width:180px">
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">牛牛號 <span class="text-muted fw-normal">(每行一個)</span></label>
+                <textarea id="accountInput" class="form-control font-monospace" rows="4" placeholder="輸入牛牛號&#10;每行一個&#10;例如：&#10;ACC001&#10;ACC002"></textarea>
+              </div>
+
+              <div class="mb-4">
+                <label class="form-label fw-semibold">業務類型</label>
+                <div class="d-flex flex-column gap-2" id="bizTypeGroup">
+                  <label class="biz-option">
+                    <input type="radio" name="bizType" value="存實貨"> 存實貨
+                  </label>
+                  <label class="biz-option">
+                    <input type="radio" name="bizType" value="提實貨"> 提實貨
+                  </label>
+                  <label class="biz-option">
+                    <input type="radio" name="bizType" value="提實貨簽收"> 提實貨簽收
+                  </label>
+                  <label class="biz-option">
+                    <input type="radio" name="bizType" value="結單/賬戶證明扣款/審計"> 結單/賬戶證明扣款/審計
+                  </label>
+                  <label class="biz-option">
+                    <input type="radio" name="bizType" value="銷戶未夠180日收費"> 銷戶未夠180日收費
+                  </label>
+                </div>
+              </div>
+
+              <div class="d-flex align-items-center gap-3">
+                <button id="submitBtn" class="btn btn-primary px-4" onclick="submitRecord()">登記</button>
+                <span id="submitMsg"></span>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- 右欄：今日記錄 -->
+        <div class="col-lg-7">
+          <div class="card shadow-sm h-100">
+            <div class="card-body p-4">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="mb-0 fw-semibold" id="todayLabel">今日記錄</h6>
+                <span class="badge bg-primary" id="todayCount">0</span>
+              </div>
+
+              <div id="todayLoading" class="text-muted">
+                <span class="spinner-border spinner-border-sm me-1"></span>載入中...
+              </div>
+              <div id="todayEmpty" class="text-muted" style="display:none">今日暫無記錄</div>
+
+              <div class="table-responsive" id="todayTableWrapper" style="display:none">
+                <table class="table table-sm table-hover mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>牛牛號</th>
+                      <th>業務類型</th>
+                      <th style="width:40px"></th>
+                    </tr>
+                  </thead>
+                  <tbody id="todayTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== 統計頁面 ===== -->
+    <div id="tab-stats" style="display:none">
+
+      <div class="d-flex flex-wrap align-items-center gap-2 mb-4">
+        <button class="btn btn-primary btn-sm" onclick="filterStats('all')" id="btn-all">全部</button>
+        <button class="btn btn-outline-primary btn-sm" onclick="filterStats('month')" id="btn-month">本月</button>
+        <button class="btn btn-outline-primary btn-sm" onclick="filterStats('week')" id="btn-week">本週</button>
+        <button class="btn btn-outline-secondary btn-sm" onclick="filterStats('custom')" id="btn-custom">自訂範圍</button>
+
+        <div id="customRangeInputs" class="d-flex align-items-center gap-2 ms-1" style="display:none !important">
+          <input type="date" id="rangeStart" class="form-control form-control-sm" style="width:145px">
+          <span class="text-muted">至</span>
+          <input type="date" id="rangeEnd" class="form-control form-control-sm" style="width:145px">
+          <button class="btn btn-primary btn-sm" onclick="applyCustomRange()">確認</button>
+        </div>
+      </div>
+
+      <!-- 匯總卡片 -->
+      <div class="row g-3 mb-4" id="summaryCards"></div>
+
+      <div id="statsLoading" class="text-muted my-3" style="display:none">
+        <span class="spinner-border spinner-border-sm me-1"></span>載入中...
+      </div>
+      <div id="noData" class="text-muted my-3" style="display:none">暫無數據</div>
+
+      <!-- 明細表格 -->
+      <div class="table-responsive" id="tableWrapper" style="display:none">
+        <table class="table table-striped table-hover align-middle">
+          <thead class="table-dark">
+            <tr>
+              <th>日期</th>
+              <th>牛牛號</th>
+              <th>業務類型</th>
+              <th style="width:40px"></th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+          <tfoot id="tableFoot"></tfoot>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
