@@ -7,7 +7,7 @@ const FIELDS = [
 ];
 
 let allRecords = [];
-let currentFilter = 'all';
+let currentFilter = 'today';
 let customRangeStart = null;
 let customRangeEnd = null;
 
@@ -141,7 +141,7 @@ async function deleteRecord(recordId, source) {
 // ===== 統計頁面 =====
 function filterStats(type) {
   currentFilter = type;
-  ['all', 'today', 'week', 'month', 'custom'].forEach(t => {
+  ['today', 'week', 'month', 'custom'].forEach(t => {
     document.getElementById(`btn-${t}`).className =
       `filter-tab${t === type ? ' active' : ''}`;
   });
