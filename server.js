@@ -100,7 +100,7 @@ app.delete('/api/records/:recordId', async (req, res) => {
 });
 
 app.get('/api/health', (req, res) => {
-  res.json({ ok: true });
+  res.json({ ok: true, storage: process.env.DATABASE_URL ? 'postgresql' : 'json' });
 });
 
 const PORT = process.env.PORT || 3000;
