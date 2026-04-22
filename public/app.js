@@ -231,7 +231,9 @@ function renderStats() {
   const reportBox = document.getElementById('reportBox');
   if (currentFilter === 'today') {
     reportBox.style.display = 'block';
-    document.getElementById('reportText').textContent = generateReport(records);
+    const { plainText, html } = generateReport(records);
+    document.getElementById('reportText').textContent = plainText;
+    document.getElementById('reportDisplay').innerHTML = html;
   } else {
     reportBox.style.display = 'none';
   }
@@ -267,33 +269,53 @@ function generateReport(records) {
   const d = new Date();
   const dateStr = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
   const lines = [dateStr, '*SETTLEMENT'];
+  const sections = [];
 
   FIELDS.forEach(field => {
     const fieldRecords = records.filter(r => r.fields['業務類型'] === field);
     const count = fieldRecords.length;
+    const countMap = {};
+    fieldRecords.forEach(r => {
+      const acc = r.fields['牛牛號'] || '';
+      countMap[acc] = (countMap[acc] || 0) + 1;
+    });
+    const seen = new Set();
+    const accountList = [];
+    fieldRecords.forEach(r => {
+      const acc = r.fields['牛牛號'] || '';
+      if (!seen.has(acc)) {
+        seen.add(acc);
+        accountList.push(countMap[acc] > 1 ? `${acc} (${countMap[acc]}份)` : acc);
+      }
+    });
 
-    if (count === 0) {
-      lines.push(`${field}:`);
-    } else {
-      const countMap = {};
-      fieldRecords.forEach(r => {
-        const acc = r.fields['牛牛號'] || '';
-        countMap[acc] = (countMap[acc] || 0) + 1;
-      });
-      const seen = new Set();
-      const accountList = [];
-      fieldRecords.forEach(r => {
-        const acc = r.fields['牛牛號'] || '';
-        if (!seen.has(acc)) {
-          seen.add(acc);
-          accountList.push(countMap[acc] > 1 ? `${acc} (${countMap[acc]}份)` : acc);
-        }
-      });
-      lines.push(`${field}${count}: ${accountList.join(', ')}`);
-    }
+    lines.push(count === 0 ? `${field}:` : `${field}${count}: ${accountList.join(', ')}`);
+    sections.push({ field, count, accountList });
   });
 
-  return lines.join('\n');
+  // 結構化 HTML
+  const html = `
+    <div style="margin-bottom:12px; display:flex; align-items:center; gap:10px">
+      <span style="font-size:15px; font-weight:700; color:var(--text1)">${dateStr}</span>
+      <span style="font-size:13px; font-weight:600; color:var(--blue)">*SETTLEMENT</span>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:10px">
+      ${sections.map(({ field, count, accountList }) => `
+        <div style="border:1px solid var(--border); border-radius:6px; padding:12px 14px; background:${count > 0 ? '#fff' : '#FAFAFA'}">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:${count > 0 ? '8px' : '0'}">
+            <span style="font-size:13px; font-weight:600; color:${count > 0 ? 'var(--text1)' : 'var(--text3)'}">${field}</span>
+            ${count > 0 ? `<span style="background:var(--blue); color:#fff; border-radius:20px; padding:1px 8px; font-size:11px; font-weight:700">${count}</span>` : `<span style="color:var(--text3); font-size:12px">— 無記錄</span>`}
+          </div>
+          ${count > 0 ? `
+            <div style="display:flex; flex-wrap:wrap; gap:6px">
+              ${accountList.map(acc => `
+                <span style="background:#F0F7FF; color:var(--blue); border:1px solid #BAD7FF; border-radius:4px; padding:3px 8px; font-size:12px; font-family:monospace">${acc}</span>
+              `).join('')}
+            </div>` : ''}
+        </div>`).join('')}
+    </div>`;
+
+  return { plainText: lines.join('\n'), html };
 }
 
 async function copyReport() {
