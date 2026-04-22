@@ -71,9 +71,9 @@
 
           <div id="todayLoading" style="padding:20px; color:var(--text3)">載入中...</div>
           <div id="todayEmpty" class="empty-state" style="display:none">今日暫無記錄</div>
-          <div id="todayTableWrapper" style="display:none">
+          <div id="todayTableWrapper" style="display:none; max-height:480px; overflow-y:auto">
             <table class="futu-table">
-              <thead>
+              <thead style="position:sticky; top:0; z-index:1">
                 <tr>
                   <th>牛牛號</th>
                   <th>業務類型</th>
@@ -129,9 +129,9 @@
         <div class="card-header">業務明細</div>
         <div id="statsLoading" style="padding:20px; color:var(--text3); display:none">載入中...</div>
         <div id="noData" class="empty-state" style="display:none">暫無數據</div>
-        <div id="tableWrapper" style="display:none">
+        <div id="tableWrapper" style="display:none; max-height:560px; overflow-y:auto">
           <table class="futu-table">
-            <thead>
+            <thead style="position:sticky; top:0; z-index:1">
               <tr>
                 <th>日期</th>
                 <th>牛牛號</th>

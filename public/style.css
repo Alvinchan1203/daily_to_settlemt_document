@@ -88,9 +88,9 @@ body {
 
 /* ===== 主內容 ===== */
 .main-content {
-  max-width: 1000px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 24px 16px;
+  padding: 24px 32px;
 }
 
 /* ===== 卡片 ===== */
