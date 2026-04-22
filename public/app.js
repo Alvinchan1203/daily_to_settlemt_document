@@ -113,7 +113,7 @@ async function loadTodayRecords() {
       document.getElementById('todayTableBody').innerHTML = dayRecs.map(r => `
         <tr>
           <td>${r.fields['牛牛號'] || '-'}</td>
-          <td><span class="biz-badge">${r.fields['業務類型'] || '-'}</span></td>
+          <td><span class="biz-tag">${r.fields['業務類型'] || '-'}</span></td>
           <td><button class="btn-delete" onclick="deleteRecord('${r.record_id}')" title="刪除">✕</button></td>
         </tr>`).join('');
     }
@@ -251,7 +251,7 @@ function renderStats() {
     <tr>
       <td>${r.fields['日期'] || '-'}</td>
       <td>${r.fields['牛牛號'] || '-'}</td>
-      <td><span class="biz-badge">${r.fields['業務類型'] || '-'}</span></td>
+      <td><span class="biz-tag">${r.fields['業務類型'] || '-'}</span></td>
       <td><button class="btn-delete" onclick="deleteRecord('${r.record_id}', 'stats')" title="刪除">✕</button></td>
     </tr>`).join('');
 

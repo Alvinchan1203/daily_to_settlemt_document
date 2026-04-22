@@ -10,64 +10,53 @@
 
   <!-- 頂部導航 -->
   <div class="top-bar">
-    <div class="logo">
-      <span class="logo-dot"></span>
-      每日走袋統計
-    </div>
+    <div class="logo-icon">富</div>
+    <span class="logo-text">每日走袋統計</span>
   </div>
 
-  <!-- 分頁標籤 -->
-  <div class="futu-tabs">
-    <a class="futu-tab active" href="#" data-tab="input">登記業務</a>
-    <a class="futu-tab" href="#" data-tab="stats">統計查看</a>
+  <!-- 分頁標籤（底線式）-->
+  <div class="tab-bar">
+    <a class="tab-item active" href="#" data-tab="input">登記業務</a>
+    <a class="tab-item" href="#" data-tab="stats">統計查看</a>
   </div>
 
   <div class="main-content">
 
     <!-- ===== 登記頁面 ===== -->
     <div id="tab-input">
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start">
 
         <!-- 左欄：輸入表單 -->
-        <div class="futu-card">
-          <div class="futu-card-header">新增業務記錄</div>
-          <div class="futu-card-body">
+        <div class="card">
+          <div class="card-header">新增業務記錄</div>
+          <div class="card-body" style="display:flex; flex-direction:column; gap:16px">
 
-            <div style="margin-bottom:16px">
-              <label class="futu-label">日期</label>
-              <input type="date" id="dateInput" class="futu-input" style="max-width:180px">
+            <div>
+              <label class="form-label">日期</label>
+              <input type="date" id="dateInput" class="form-input" style="max-width:180px">
             </div>
 
-            <div style="margin-bottom:16px">
-              <label class="futu-label">牛牛號 <span style="color:#9CA3AF;font-weight:400">(每行一個)</span></label>
-              <textarea id="accountInput" class="futu-input" rows="4"
-                style="resize:vertical; font-family:monospace"
+            <div>
+              <label class="form-label">牛牛號
+                <span style="color:var(--text3); font-weight:400; margin-left:4px">每行一個</span>
+              </label>
+              <textarea id="accountInput" class="form-input" rows="4"
                 placeholder="輸入牛牛號&#10;每行一個&#10;例如：&#10;12345678&#10;87654321"></textarea>
             </div>
 
-            <div style="margin-bottom:20px">
-              <label class="futu-label">業務類型</label>
-              <div style="display:flex; flex-direction:column; gap:8px" id="bizTypeGroup">
-                <label class="biz-option">
-                  <input type="radio" name="bizType" value="存實貨"> 存實貨
-                </label>
-                <label class="biz-option">
-                  <input type="radio" name="bizType" value="提實貨"> 提實貨
-                </label>
-                <label class="biz-option">
-                  <input type="radio" name="bizType" value="提實貨簽收"> 提實貨簽收
-                </label>
-                <label class="biz-option">
-                  <input type="radio" name="bizType" value="結單/賬戶證明扣款/審計"> 結單/賬戶證明扣款/審計
-                </label>
-                <label class="biz-option">
-                  <input type="radio" name="bizType" value="銷戶未夠180日收費"> 銷戶未夠180日收費
-                </label>
+            <div>
+              <label class="form-label">業務類型</label>
+              <div style="display:flex; flex-direction:column; gap:8px">
+                <label class="biz-option"><input type="radio" name="bizType" value="存實貨"> 存實貨</label>
+                <label class="biz-option"><input type="radio" name="bizType" value="提實貨"> 提實貨</label>
+                <label class="biz-option"><input type="radio" name="bizType" value="提實貨簽收"> 提實貨簽收</label>
+                <label class="biz-option"><input type="radio" name="bizType" value="結單/賬戶證明扣款/審計"> 結單/賬戶證明扣款/審計</label>
+                <label class="biz-option"><input type="radio" name="bizType" value="銷戶未夠180日收費"> 銷戶未夠180日收費</label>
               </div>
             </div>
 
-            <div style="display:flex; align-items:center; gap:12px">
-              <button id="submitBtn" class="btn-futu" onclick="submitRecord()">登記</button>
+            <div style="display:flex; align-items:center; gap:12px; padding-top:4px">
+              <button id="submitBtn" class="btn-primary" onclick="submitRecord()">登記</button>
               <span id="submitMsg"></span>
             </div>
 
@@ -75,36 +64,32 @@
         </div>
 
         <!-- 右欄：今日記錄 -->
-        <div class="futu-card">
-          <div class="futu-card-header">
+        <div class="card">
+          <div class="card-header">
             <span id="todayLabel">今日記錄</span>
             <span class="count-badge" id="todayCount">0</span>
           </div>
-          <div class="futu-card-body" style="padding:0">
 
-            <div id="todayLoading" style="padding:20px; color:#9CA3AF; font-size:0.88rem">載入中...</div>
-            <div id="todayEmpty" class="empty-state" style="display:none">今日暫無記錄</div>
-
-            <div id="todayTableWrapper" style="display:none">
-              <table class="futu-table">
-                <thead>
-                  <tr>
-                    <th>牛牛號</th>
-                    <th>業務類型</th>
-                    <th style="width:36px"></th>
-                  </tr>
-                </thead>
-                <tbody id="todayTableBody"></tbody>
-              </table>
-            </div>
-
+          <div id="todayLoading" style="padding:20px; color:var(--text3)">載入中...</div>
+          <div id="todayEmpty" class="empty-state" style="display:none">今日暫無記錄</div>
+          <div id="todayTableWrapper" style="display:none">
+            <table class="futu-table">
+              <thead>
+                <tr>
+                  <th>牛牛號</th>
+                  <th>業務類型</th>
+                  <th style="width:36px"></th>
+                </tr>
+              </thead>
+              <tbody id="todayTableBody"></tbody>
+            </table>
           </div>
         </div>
 
       </div>
 
-      <div id="updateNotice" class="update-notice" style="display:none; margin-top:12px">
-        ℹ️ 此日期已有記錄，提交後將<strong>更新</strong>現有數據。
+      <div id="updateNotice" class="notice-info" style="display:none; margin-top:12px">
+        此日期已有記錄，提交後將<strong>更新</strong>現有數據。
       </div>
     </div>
 
@@ -112,18 +97,17 @@
     <div id="tab-stats" style="display:none">
 
       <!-- 篩選 -->
-      <div class="filter-tabs" style="margin-bottom:20px">
+      <div class="filter-tabs">
         <span class="filter-tab active" onclick="filterStats('all')" id="btn-all">全部</span>
         <span class="filter-tab" onclick="filterStats('today')" id="btn-today">本日</span>
         <span class="filter-tab" onclick="filterStats('week')" id="btn-week">本週</span>
         <span class="filter-tab" onclick="filterStats('month')" id="btn-month">本月</span>
         <span class="filter-tab" onclick="filterStats('custom')" id="btn-custom">自訂範圍</span>
-
         <div id="customRangeInputs" style="display:none; align-items:center; gap:8px">
           <input type="date" id="rangeStart">
-          <span style="color:#9CA3AF; font-size:0.85rem">至</span>
+          <span style="color:var(--text3)">至</span>
           <input type="date" id="rangeEnd">
-          <button class="btn-futu" style="padding:6px 14px; font-size:0.82rem" onclick="applyCustomRange()">確認</button>
+          <button class="btn-primary" style="padding:7px 14px; font-size:13px" onclick="applyCustomRange()">確認</button>
         </div>
       </div>
 
@@ -131,20 +115,20 @@
       <div style="display:grid; grid-template-columns:repeat(6,1fr); gap:10px; margin-bottom:20px" id="summaryCards"></div>
 
       <!-- 報告格式（本日專用）-->
-      <div id="reportBox" class="futu-card" style="display:none; margin-bottom:20px">
-        <div class="futu-card-header">
+      <div id="reportBox" class="card" style="display:none; margin-bottom:20px">
+        <div class="card-header">
           報告格式
-          <button class="btn-futu-outline" onclick="copyReport()">複製文字</button>
+          <button class="btn-secondary" onclick="copyReport()">複製文字</button>
         </div>
-        <div class="futu-card-body" style="padding:16px">
+        <div class="card-body" style="padding:16px">
           <pre id="reportText" class="report-pre"></pre>
         </div>
       </div>
 
       <!-- 明細表格 -->
-      <div class="futu-card">
-        <div class="futu-card-header">業務明細</div>
-        <div id="statsLoading" style="padding:20px; color:#9CA3AF; font-size:0.88rem; display:none">載入中...</div>
+      <div class="card">
+        <div class="card-header">業務明細</div>
+        <div id="statsLoading" style="padding:20px; color:var(--text3); display:none">載入中...</div>
         <div id="noData" class="empty-state" style="display:none">暫無數據</div>
         <div id="tableWrapper" style="display:none">
           <table class="futu-table">
