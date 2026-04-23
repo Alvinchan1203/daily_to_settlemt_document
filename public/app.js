@@ -533,6 +533,7 @@ function calcShowResult(title, html, record) {
   card.style.display = '';
   calcCurrentRecord = record;
   document.getElementById('calcConfirmCard').style.display = '';
+  document.getElementById('calcConfirmDate').value = todayStr;
   document.getElementById('calcAccountInput').value = '';
   document.getElementById('calcConfirmMsg').textContent = '';
   card.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -589,10 +590,11 @@ async function calcConfirmApply() {
   msg.textContent = '儲存中…';
   msg.style.color = 'var(--text3)';
   try {
+    const date = document.getElementById('calcConfirmDate').value || todayStr;
     const res = await fetch('/api/fee-records', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...calcCurrentRecord, account })
+      body: JSON.stringify({ ...calcCurrentRecord, date, account })
     });
     const data = await res.json();
     if (data.code !== 0) throw new Error(data.msg);
