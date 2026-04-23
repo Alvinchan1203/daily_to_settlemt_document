@@ -104,18 +104,12 @@ app.get('/api/health', (req, res) => {
 });
 
 // ── 每手股數查詢 ─────────────────────────────────────────────
-const _lotCache = {};
-
 app.get('/api/lotsize/:code', async (req, res) => {
   const code = req.params.code;
   if (!/^\d+$/.test(code)) return res.status(400).json({ error: '無效股票代號' });
-  if (_lotCache[code]) return res.json({ lotSize: _lotCache[code], source: '快取' });
   try {
     const lotSize = await scrapeEtnetLotSize(code);
-    if (lotSize) {
-      _lotCache[code] = lotSize;
-      return res.json({ lotSize, source: 'ETNet' });
-    }
+    if (lotSize) return res.json({ lotSize, source: 'ETNet' });
     res.status(404).json({ error: '無法取得每手股數，請手動輸入' });
   } catch (e) {
     res.status(404).json({ error: '無法取得每手股數，請手動輸入', debug: e.message });
