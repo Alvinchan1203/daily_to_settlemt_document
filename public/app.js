@@ -51,25 +51,32 @@ async function submitRecord() {
   if (accounts.length === 0) { showMsg('請輸入牛牛號', 'error'); document.getElementById('accountInput').focus(); return; }
   if (!bizType) { showMsg('請選擇業務類型', 'error'); return; }
 
+  const count = Math.max(1, parseInt(document.getElementById('countInput').value) || 1);
+  const total = accounts.length * count;
   const btn = document.getElementById('submitBtn');
   btn.disabled = true;
-  showMsg(`登記中 (0/${accounts.length})...`, 'muted');
+  showMsg(`登記中 (0/${total})...`, 'muted');
 
   try {
-    for (let i = 0; i < accounts.length; i++) {
-      showMsg(`登記中 (${i + 1}/${accounts.length})...`, 'muted');
-      const res = await fetch('/api/records', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fields: { '日期': date, '牛牛號': accounts[i], '業務類型': bizType.value }
-        })
-      });
-      const data = await res.json();
-      if (data.code !== 0) throw new Error(data.msg);
+    let done = 0;
+    for (let c = 0; c < count; c++) {
+      for (let i = 0; i < accounts.length; i++) {
+        done++;
+        showMsg(`登記中 (${done}/${total})...`, 'muted');
+        const res = await fetch('/api/records', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fields: { '日期': date, '牛牛號': accounts[i], '業務類型': bizType.value }
+          })
+        });
+        const data = await res.json();
+        if (data.code !== 0) throw new Error(data.msg);
+      }
     }
 
-    showMsg(`✓ 已登記 ${accounts.length} 個賬戶！`, 'success');
+    const countMsg = count > 1 ? `（每人 ${count} 份）` : '';
+    showMsg(`✓ 已登記 ${total} 筆${countMsg}`, 'success');
     document.getElementById('accountInput').value = '';
     bizType.checked = false;
     document.getElementById('accountInput').focus();
@@ -258,9 +265,21 @@ function renderStats() {
   if (feeRecords.length === 0) {
     document.getElementById('feeEmpty').style.display = 'block';
     document.getElementById('feeTableWrapper').style.display = 'none';
+    document.getElementById('feeTableFoot').innerHTML = '';
   } else {
     document.getElementById('feeEmpty').style.display = 'none';
     document.getElementById('feeTableWrapper').style.display = 'block';
+    const totalHkscc   = feeRecords.reduce((s, r) => s + Number(r.hkscc_fee), 0);
+    const totalCompany = feeRecords.reduce((s, r) => s + Number(r.company_fee), 0);
+    const totalGrand   = feeRecords.reduce((s, r) => s + Number(r.total_fee), 0);
+    document.getElementById('feeTableFoot').innerHTML = `
+      <tr>
+        <td colspan="5" style="font-weight:600;">合計（${feeRecords.length} 筆）</td>
+        <td style="text-align:right; font-weight:600;">HK$${totalHkscc.toFixed(2)}</td>
+        <td style="text-align:right; font-weight:600;">HK$${totalCompany.toFixed(2)}</td>
+        <td style="text-align:right; font-weight:600; color:var(--blue);">HK$${totalGrand.toFixed(2)}</td>
+        <td></td>
+      </tr>`;
     document.getElementById('feeTableBody').innerHTML = feeRecords.map(r => `
       <tr>
         <td>${r.date || '-'}</td>
@@ -384,6 +403,8 @@ function calcGenCertFields() {
   const n = parseInt(document.getElementById('calcNumCerts').value);
   if (!n || n < 1) { alert('請輸入有效張數（正整數）'); return; }
   const list = document.getElementById('calcCertList');
+  // 保留現有已輸入的值
+  const oldValues = calcCertInputs.map(inp => inp.value);
   list.innerHTML = '';
   calcCertInputs = [];
   for (let i = 0; i < n; i++) {
@@ -394,6 +415,7 @@ function calcGenCertFields() {
       <span style="color:var(--text3);font-size:13px;">股</span>`;
     list.appendChild(row);
     const inp = row.querySelector('input');
+    if (oldValues[i]) inp.value = oldValues[i];
     inp.addEventListener('input', calcUpdateSplitTotal);
     calcCertInputs.push(inp);
   }
@@ -454,10 +476,10 @@ function calcNormal(lotSize) {
     <div class="calc-row"><span>${totalLots} 手 × HK$3.50</span><span>HK$${hkscc.toFixed(2)}</span></div>
   </div>
   <div class="calc-section">
-    <div class="calc-section-title">我司費用</div>
+    <div class="calc-section-title">富途證券手續費</div>
     <div class="calc-row"><span>每手費 ${totalLots} 手 × HK$1.50</span><span>HK$${coRaw.toFixed(2)}</span></div>
     ${coFee > coRaw ? `<div class="calc-row adjusted"><span>↑ 適用最低收費 HK$500.00</span><span>HK$${coFee.toFixed(2)}</span></div>` : ''}
-    <div class="calc-row subtotal"><span>我司費用合計</span><span>HK$${coFee.toFixed(2)}</span></div>
+    <div class="calc-row subtotal"><span>富途證券手續費合計</span><span>HK$${coFee.toFixed(2)}</span></div>
   </div>
   <div class="calc-total"><span>總費用</span><span>HK$${grand.toFixed(2)}</span></div>`;
   calcLastResult = calcBuildPlainNormal(total, lotSize, whole, frac, totalLots, hkscc, coRaw, coFee, grand);
@@ -512,11 +534,11 @@ function calcSplitCalc(lotSize) {
     <div class="calc-row"><span>${totalLots} 手 × HK$3.50</span><span>HK$${hkscc.toFixed(2)}</span></div>
   </div>
   <div class="calc-section">
-    <div class="calc-section-title">我司費用</div>
+    <div class="calc-section-title">富途證券手續費</div>
     <div class="calc-row"><span>每手費 ${totalLots} 手 × HK$1.50</span><span>HK$${coPerLot.toFixed(2)}</span></div>
     ${extra > 0 ? `<div class="calc-row"><span>拆細行政費 第6-${nCerts}張 × HK$100（共${extra}張）</span><span>HK$${admin.toFixed(2)}</span></div>` : ''}
     ${coFee > coRaw ? `<div class="calc-row adjusted"><span>↑ 適用最低收費 HK$500.00</span><span>HK$${coFee.toFixed(2)}</span></div>` : ''}
-    <div class="calc-row subtotal"><span>我司費用合計</span><span>HK$${coFee.toFixed(2)}</span></div>
+    <div class="calc-row subtotal"><span>富途證券手續費合計</span><span>HK$${coFee.toFixed(2)}</span></div>
   </div>
   <div class="calc-total"><span>總費用</span><span>HK$${grand.toFixed(2)}</span></div>`;
   calcLastResult = calcBuildPlainSplit(sharesList, total, lotSize, whole, frac, totalLots, nCerts, extra, hkscc, coPerLot, admin, coRaw, coFee, grand);
@@ -568,6 +590,7 @@ async function calcLookupLotSize() {
     const data = await resp.json();
     if (data.lotSize) {
       document.getElementById('calcLotSize').value = data.lotSize;
+      document.getElementById('calcStockName').textContent = data.stockName ? `　${data.stockName}` : '';
       status.innerHTML = `<span style="color:var(--green);">✓ 已自動填入（來源：${data.source}）</span>`;
     } else {
       status.innerHTML = `<span style="color:#FA8C16;">⚠ ${data.error || '查詢失敗，請手動輸入'}</span>`;
@@ -627,6 +650,7 @@ function calcClearAll() {
     document.getElementById(id).value = '';
   });
   document.getElementById('calcLookupStatus').innerHTML = '';
+  document.getElementById('calcStockName').textContent = '';
   const cl = document.getElementById('calcCertList');
   cl.innerHTML = '';
   cl.style.display = 'none';
@@ -649,7 +673,7 @@ function calcBuildPlainNormal(total, lotSize, whole, frac, totalLots, hkscc, coR
     `中央結算費用 : ${totalLots}手 × $3.50 = HK$${hkscc.toFixed(2)}`, '-'.repeat(38),
     `我司每手費   : ${totalLots}手 × $1.50 = HK$${coRaw.toFixed(2)}`);
   if (coFee > coRaw) lines.push(`（適用最低收費）         = HK$${coFee.toFixed(2)}`);
-  lines.push(`我司費用合計 : HK$${coFee.toFixed(2)}`, '='.repeat(38),
+  lines.push(`富途證券手續費合計 : HK$${coFee.toFixed(2)}`, '='.repeat(38),
     `總費用       : HK$${grand.toFixed(2)}`, '='.repeat(38));
   return lines.join('\n');
 }
@@ -666,7 +690,7 @@ function calcBuildPlainSplit(sharesList, total, lotSize, whole, frac, totalLots,
     `我司每手費   : ${totalLots}手 × $1.50 = HK$${coPerLot.toFixed(2)}`);
   if (extra > 0) lines.push(`拆細行政費   : ${extra}張 × $100 = HK$${admin.toFixed(2)}`);
   if (coFee > coRaw) lines.push(`（適用最低收費）         = HK$${coFee.toFixed(2)}`);
-  lines.push(`我司費用合計 : HK$${coFee.toFixed(2)}`, '='.repeat(38),
+  lines.push(`富途證券手續費合計 : HK$${coFee.toFixed(2)}`, '='.repeat(38),
     `總費用       : HK$${grand.toFixed(2)}`, '='.repeat(38));
   return lines.join('\n');
 }

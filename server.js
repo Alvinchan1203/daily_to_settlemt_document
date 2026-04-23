@@ -195,8 +195,8 @@ app.get('/api/lotsize/:code', async (req, res) => {
   const code = req.params.code;
   if (!/^\d+$/.test(code)) return res.status(400).json({ error: '無效股票代號' });
   try {
-    const lotSize = await scrapeEtnetLotSize(code);
-    if (lotSize) return res.json({ lotSize, source: 'ETNet' });
+    const result = await scrapeEtnetLotSize(code);
+    if (result) return res.json({ lotSize: result.lotSize, stockName: result.stockName, source: 'ETNet' });
     res.status(404).json({ error: '無法取得每手股數，請手動輸入' });
   } catch (e) {
     res.status(404).json({ error: '無法取得每手股數，請手動輸入', debug: e.message });
@@ -226,20 +226,24 @@ async function scrapeEtnetLotSize(stockCode) {
     await page.fill('#globalsearch', code);
     await page.press('#globalsearch', 'Enter');
     await page.waitForSelector("li:has-text('單位'), li:has-text('单位')", { timeout: 20000 });
-    const value = await page.evaluate(() => {
+    const result = await page.evaluate(() => {
+      let lotSize = null;
       for (const li of document.querySelectorAll('li')) {
         const txt = li.textContent.trim();
         if (txt === '單位' || txt === '单位') {
           const sib = li.nextElementSibling;
           if (sib) {
             const n = parseInt(sib.textContent.trim().replace(/,/g, ''));
-            return isNaN(n) ? null : n;
+            if (!isNaN(n)) lotSize = n;
           }
         }
       }
-      return null;
+      const header = document.getElementById('StkQuoteHeader');
+      const headerText = header ? header.textContent.trim() : '';
+      const stockName = headerText.replace(/^\d+\s*/, '').trim() || null;
+      return { lotSize, stockName };
     });
-    return value || null;
+    return result.lotSize ? result : null;
   } finally {
     await browser.close();
   }

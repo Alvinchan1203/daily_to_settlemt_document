@@ -3,21 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>每日走袋統計</title>
+  <title>月會數據統計</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
   <!-- 頂部導航 -->
   <div class="top-bar">
-    <span class="logo-text">每日走袋統計</span>
+    <span class="logo-text">月會數據統計</span>
   </div>
 
   <!-- 分頁標籤（底線式）-->
   <div class="tab-bar">
     <a class="tab-item active" href="#" data-tab="input">登記業務</a>
-    <a class="tab-item" href="#" data-tab="stats">統計查看</a>
     <a class="tab-item" href="#" data-tab="calc">申請提取實物股票收費計算</a>
+    <a class="tab-item" href="#" data-tab="stats">統計查看</a>
   </div>
 
   <div class="main-content">
@@ -56,6 +56,10 @@
             </div>
 
             <div style="display:flex; align-items:center; gap:12px; padding-top:4px">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <label class="form-label" style="margin:0; white-space:nowrap;">份數</label>
+                <input type="number" id="countInput" class="form-input" style="width:70px;" value="1" min="1" max="99" />
+              </div>
               <button id="submitBtn" class="btn-primary" onclick="submitRecord()">登記</button>
               <span id="submitMsg"></span>
             </div>
@@ -138,12 +142,13 @@
                 <th>每手股數</th>
                 <th>類型</th>
                 <th style="text-align:right;">HKSCC</th>
-                <th style="text-align:right;">我司費用</th>
+                <th style="text-align:right;">富途證券手續費</th>
                 <th style="text-align:right;">總費用</th>
                 <th style="width:36px;"></th>
               </tr>
             </thead>
             <tbody id="feeTableBody"></tbody>
+            <tfoot id="feeTableFoot"></tfoot>
           </table>
         </div>
       </div>
@@ -178,7 +183,7 @@
 
         <!-- 股票資料 -->
         <div class="card" style="margin-bottom:12px;">
-          <div class="card-header">股票資料</div>
+          <div class="card-header">股票資料<span id="calcStockName" style="color:var(--text1); font-weight:700; font-size:17px;"></span></div>
           <div class="card-body">
             <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:flex-start;">
               <div>
