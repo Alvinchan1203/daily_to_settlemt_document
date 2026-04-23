@@ -159,6 +159,8 @@ function applyCustomRange() {
   renderStats();
 }
 
+let allFeeRecords = [];
+
 async function loadStats() {
   document.getElementById('statsLoading').style.display = 'block';
   document.getElementById('noData').style.display = 'none';
@@ -166,7 +168,7 @@ async function loadStats() {
   document.getElementById('summaryCards').innerHTML = '';
 
   try {
-    allRecords = await fetchAllRecords();
+    [allRecords, allFeeRecords] = await Promise.all([fetchAllRecords(), fetchAllFeeRecords()]);
     renderStats();
   } catch (e) {
     document.getElementById('statsLoading').textContent = '載入失敗：' + e.message;
@@ -235,6 +237,42 @@ function renderStats() {
     document.getElementById('reportText').textContent = generateReport(records);
   } else {
     reportBox.style.display = 'none';
+  }
+
+  // 費用紀錄（同日期篩選）
+  const feeRecords = allFeeRecords.filter(r => {
+    if (!r.date) return false;
+    if (currentFilter === 'today') return r.date === todayStr;
+    const d = new Date(r.date);
+    const now = new Date();
+    if (currentFilter === 'month') return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+    if (currentFilter === 'week') {
+      const weekStart = new Date(now); const day = now.getDay() || 7;
+      weekStart.setDate(now.getDate() - day + 1); weekStart.setHours(0,0,0,0);
+      const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 6); weekEnd.setHours(23,59,59,999);
+      return d >= weekStart && d <= weekEnd;
+    }
+    if (currentFilter === 'custom' && customRangeStart && customRangeEnd) return r.date >= customRangeStart && r.date <= customRangeEnd;
+    return true;
+  });
+  if (feeRecords.length === 0) {
+    document.getElementById('feeEmpty').style.display = 'block';
+    document.getElementById('feeTableWrapper').style.display = 'none';
+  } else {
+    document.getElementById('feeEmpty').style.display = 'none';
+    document.getElementById('feeTableWrapper').style.display = 'block';
+    document.getElementById('feeTableBody').innerHTML = feeRecords.map(r => `
+      <tr>
+        <td>${r.date || '-'}</td>
+        <td>${r.account || '-'}</td>
+        <td>${r.stock_code || '-'}</td>
+        <td>${r.lot_size ? r.lot_size.toLocaleString() : '-'}</td>
+        <td><span class="biz-tag">${r.mode === 'split' ? '特別拆細' : '一般提取'}</span></td>
+        <td style="text-align:right;">HK$${Number(r.hkscc_fee).toFixed(2)}</td>
+        <td style="text-align:right;">HK$${Number(r.company_fee).toFixed(2)}</td>
+        <td style="text-align:right; font-weight:600; color:var(--blue);">HK$${Number(r.total_fee).toFixed(2)}</td>
+        <td><button class="btn-delete" onclick="deleteFeeRecord('${r.record_id}')" title="刪除">✕</button></td>
+      </tr>`).join('');
   }
 
   document.getElementById('statsLoading').style.display = 'none';
@@ -311,6 +349,14 @@ async function fetchAllRecords() {
   return data.data.items || [];
 }
 
+async function fetchAllFeeRecords() {
+  const res = await fetch('/api/fee-records');
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json();
+  if (data.code !== 0) throw new Error(data.msg || 'API 錯誤');
+  return data.data.items || [];
+}
+
 loadTodayRecords();
 
 // ===== 收費計算器 =====
@@ -323,6 +369,7 @@ const CALC_CO_MIN        = 500.00;
 let calcMode = 'normal';
 let calcCertInputs = [];
 let calcLastResult = '';
+let calcCurrentRecord = null;
 
 function calcSetMode(mode) {
   calcMode = mode;
@@ -414,7 +461,10 @@ function calcNormal(lotSize) {
   </div>
   <div class="calc-total"><span>總費用</span><span>HK$${grand.toFixed(2)}</span></div>`;
   calcLastResult = calcBuildPlainNormal(total, lotSize, whole, frac, totalLots, hkscc, coRaw, coFee, grand);
-  calcShowResult('一般提取', html);
+  calcShowResult('一般提取', html, {
+    date: todayStr, stock_code: document.getElementById('calcStockCode').value.trim() || '',
+    lot_size: lotSize, mode: 'normal', total_fee: grand, hkscc_fee: hkscc, company_fee: coFee
+  });
 }
 
 function calcSplitCalc(lotSize) {
@@ -470,14 +520,21 @@ function calcSplitCalc(lotSize) {
   </div>
   <div class="calc-total"><span>總費用</span><span>HK$${grand.toFixed(2)}</span></div>`;
   calcLastResult = calcBuildPlainSplit(sharesList, total, lotSize, whole, frac, totalLots, nCerts, extra, hkscc, coPerLot, admin, coRaw, coFee, grand);
-  calcShowResult('特別拆細提取', html);
+  calcShowResult('特別拆細提取', html, {
+    date: todayStr, stock_code: document.getElementById('calcStockCode').value.trim() || '',
+    lot_size: lotSize, mode: 'split', total_fee: grand, hkscc_fee: hkscc, company_fee: coFee
+  });
 }
 
-function calcShowResult(title, html) {
+function calcShowResult(title, html, record) {
   document.getElementById('calcResultTitle').textContent = title;
   document.getElementById('calcResultContent').innerHTML = html;
   const card = document.getElementById('calcResultCard');
   card.style.display = '';
+  calcCurrentRecord = record;
+  document.getElementById('calcConfirmCard').style.display = '';
+  document.getElementById('calcAccountInput').value = '';
+  document.getElementById('calcConfirmMsg').textContent = '';
   card.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -522,6 +579,47 @@ async function calcLookupLotSize() {
   }
 }
 
+async function calcConfirmApply() {
+  const account = document.getElementById('calcAccountInput').value.trim();
+  if (!account || !/^\d+$/.test(account)) { alert('請輸入有效牛牛號（純數字）'); return; }
+  if (!calcCurrentRecord) { alert('請先計算費用'); return; }
+  const btn = event.target;
+  const msg = document.getElementById('calcConfirmMsg');
+  btn.disabled = true;
+  msg.textContent = '儲存中…';
+  msg.style.color = 'var(--text3)';
+  try {
+    const res = await fetch('/api/fee-records', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...calcCurrentRecord, account })
+    });
+    const data = await res.json();
+    if (data.code !== 0) throw new Error(data.msg);
+    msg.textContent = '✓ 已儲存';
+    msg.style.color = 'var(--green)';
+    btn.disabled = false;
+    setTimeout(() => { msg.textContent = ''; }, 3000);
+  } catch (e) {
+    msg.textContent = '✗ 儲存失敗：' + e.message;
+    msg.style.color = 'var(--red)';
+    btn.disabled = false;
+  }
+}
+
+async function deleteFeeRecord(recordId) {
+  if (!confirm('確認刪除此費用紀錄？')) return;
+  try {
+    const res = await fetch(`/api/fee-records/${recordId}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (data.code !== 0) throw new Error(data.msg);
+    allFeeRecords = allFeeRecords.filter(r => r.record_id !== recordId);
+    renderStats();
+  } catch (e) {
+    alert('刪除失敗：' + e.message);
+  }
+}
+
 function calcClearAll() {
   ['calcStockCode', 'calcLotSize', 'calcTotalShares', 'calcNumCerts'].forEach(id => {
     document.getElementById(id).value = '';
@@ -532,8 +630,10 @@ function calcClearAll() {
   cl.style.display = 'none';
   document.getElementById('calcSplitTotal').textContent = '';
   document.getElementById('calcResultCard').style.display = 'none';
+  document.getElementById('calcConfirmCard').style.display = 'none';
   calcCertInputs = [];
   calcLastResult = '';
+  calcCurrentRecord = null;
 }
 
 function calcBuildPlainNormal(total, lotSize, whole, frac, totalLots, hkscc, coRaw, coFee, grand) {
@@ -572,5 +672,12 @@ function calcBuildPlainSplit(sharesList, total, lotSize, whole, frac, totalLots,
 document.addEventListener('keydown', e => {
   if (e.key !== 'Enter') return;
   if (e.target.id === 'calcStockCode') { calcLookupLotSize(); return; }
+  if (e.target.id === 'calcAccountInput') { calcConfirmApply(); return; }
   if (e.target.closest && e.target.closest('#tab-calc') && e.target.id !== 'calcNumCerts') calcRun();
+});
+
+document.getElementById('calcAccountInput').addEventListener('input', function () {
+  const pos = this.selectionStart;
+  const cleaned = this.value.replace(/\D/g, '');
+  if (cleaned !== this.value) { this.value = cleaned; this.setSelectionRange(pos - 1, pos - 1); }
 });

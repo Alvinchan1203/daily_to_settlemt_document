@@ -124,6 +124,30 @@
         </div>
       </div>
 
+      <!-- 提取實物股票費用紀錄 -->
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-header">提取實物股票費用紀錄</div>
+        <div id="feeEmpty" class="empty-state" style="display:none;">暫無費用紀錄</div>
+        <div id="feeTableWrapper" style="display:none; max-height:400px; overflow-y:auto;">
+          <table class="futu-table">
+            <thead style="position:sticky; top:0; z-index:1;">
+              <tr>
+                <th>日期</th>
+                <th>牛牛號</th>
+                <th>股票代號</th>
+                <th>每手股數</th>
+                <th>類型</th>
+                <th style="text-align:right;">HKSCC</th>
+                <th style="text-align:right;">我司費用</th>
+                <th style="text-align:right;">總費用</th>
+                <th style="width:36px;"></th>
+              </tr>
+            </thead>
+            <tbody id="feeTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- 明細表格 -->
       <div class="card">
         <div class="card-header">業務明細</div>
@@ -222,6 +246,21 @@
             <button class="btn-secondary" onclick="calcCopyResult()">複製結果</button>
           </div>
           <div class="card-body" id="calcResultContent"></div>
+        </div>
+
+        <!-- 確認申請 -->
+        <div class="card" id="calcConfirmCard" style="display:none; margin-top:12px;">
+          <div class="card-header">確認申請</div>
+          <div class="card-body">
+            <div style="display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap;">
+              <div>
+                <label class="form-label">牛牛號</label>
+                <input id="calcAccountInput" type="text" class="form-input" style="width:160px;" placeholder="請輸入牛牛號" inputmode="numeric" />
+              </div>
+              <button class="btn-primary" onclick="calcConfirmApply()">確認申請</button>
+              <span id="calcConfirmMsg" style="font-size:13px;"></span>
+            </div>
+          </div>
         </div>
 
       </div>
