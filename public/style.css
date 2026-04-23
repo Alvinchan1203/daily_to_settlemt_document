@@ -402,3 +402,125 @@ textarea.form-input {
 }
 
 #submitMsg { font-size: 13px; }
+
+/* ===== 收費計算器 ===== */
+.calc-wrap {
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+.calc-mode-toggle {
+  display: flex;
+  gap: 8px;
+}
+
+.calc-mode-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: 2px solid var(--blue);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--blue);
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.calc-mode-btn.active {
+  background: var(--blue);
+  color: #fff;
+}
+
+.calc-cert-scroll {
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  background: #fafafa;
+}
+
+.calc-cert-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.calc-cert-row label {
+  width: 60px;
+  text-align: right;
+  font-size: 13px;
+  color: var(--text2);
+  flex-shrink: 0;
+}
+
+.calc-section {
+  background: var(--bg);
+  border-radius: 6px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+}
+
+.calc-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--blue);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.calc-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 3px 0;
+  color: var(--text1);
+}
+
+.calc-row.subtotal {
+  font-weight: 700;
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+  padding-top: 6px;
+}
+
+.calc-row.adjusted {
+  color: #E65100;
+  font-size: 12px;
+}
+
+.calc-total {
+  background: var(--blue);
+  color: #fff;
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 16px;
+  font-weight: 700;
+  margin-top: 8px;
+}
+
+.calc-detail-toggle {
+  font-size: 12px;
+  color: var(--blue);
+  cursor: pointer;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.calc-detail-table {
+  font-size: 12px;
+  width: 100%;
+}
+
+.calc-detail-table td { padding: 2px 6px; color: var(--text2); }

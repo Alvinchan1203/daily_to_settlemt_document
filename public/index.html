@@ -17,6 +17,7 @@
   <div class="tab-bar">
     <a class="tab-item active" href="#" data-tab="input">登記業務</a>
     <a class="tab-item" href="#" data-tab="stats">統計查看</a>
+    <a class="tab-item" href="#" data-tab="calc">收費計算</a>
   </div>
 
   <div class="main-content">
@@ -145,6 +146,87 @@
       </div>
 
     </div>
+  </div>
+
+    <!-- ===== 收費計算頁面 ===== -->
+    <div id="tab-calc" style="display:none;">
+      <div class="calc-wrap">
+
+        <!-- 股票資料 -->
+        <div class="card" style="margin-bottom:12px;">
+          <div class="card-header">股票資料</div>
+          <div class="card-body">
+            <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:flex-start;">
+              <div>
+                <label class="form-label">股票代號</label>
+                <div style="display:flex; gap:6px;">
+                  <input id="calcStockCode" type="text" class="form-input" style="width:110px;" placeholder="例：700" inputmode="numeric" />
+                  <button class="btn-secondary" id="calcLookupBtn" onclick="calcLookupLotSize()">查詢每手股數</button>
+                </div>
+                <div id="calcLookupStatus" style="margin-top:4px; font-size:12px;"></div>
+              </div>
+              <div>
+                <label class="form-label">每手股數</label>
+                <input id="calcLotSize" type="number" class="form-input" style="width:180px;" placeholder="自動填入或手動輸入" min="1" />
+              </div>
+              <div style="display:flex; align-items:flex-end; padding-bottom:2px;">
+                <span style="font-size:12px; color:var(--text3);">如查詢失敗，請手動輸入</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 提取類型 + 輸入 -->
+        <div class="card" style="margin-bottom:12px;">
+          <div class="card-header">提取類型</div>
+          <div class="card-body">
+            <div class="calc-mode-toggle" style="margin-bottom:16px;">
+              <button class="calc-mode-btn active" id="calc-btn-normal" onclick="calcSetMode('normal')">一般提取</button>
+              <button class="calc-mode-btn" id="calc-btn-split" onclick="calcSetMode('split')">特別拆細提取</button>
+            </div>
+
+            <!-- 一般提取 -->
+            <div id="calcNormalPanel">
+              <label class="form-label">總提取股數</label>
+              <div style="display:flex; align-items:center; gap:8px; max-width:220px;">
+                <input id="calcTotalShares" type="number" class="form-input" placeholder="請輸入股數" min="1" />
+                <span style="color:var(--text2); white-space:nowrap;">股</span>
+              </div>
+            </div>
+
+            <!-- 特別拆細提取 -->
+            <div id="calcSplitPanel" style="display:none;">
+              <div style="display:flex; gap:8px; align-items:flex-end; margin-bottom:8px;">
+                <div>
+                  <label class="form-label">分拆張數</label>
+                  <input id="calcNumCerts" type="number" class="form-input" style="width:100px;" placeholder="張數" min="1" />
+                </div>
+                <button class="btn-secondary" onclick="calcGenCertFields()">確認</button>
+              </div>
+              <div id="calcCertList" class="calc-cert-scroll" style="display:none;"></div>
+              <div id="calcSplitTotal" style="margin-top:8px; font-size:13px; color:var(--blue); font-weight:600;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 按鈕 -->
+        <div style="display:flex; gap:8px; margin-bottom:12px;">
+          <button class="btn-primary" style="flex:1;" onclick="calcRun()">計算費用</button>
+          <button class="btn-secondary" style="padding:9px 20px;" onclick="calcClearAll()">清除</button>
+        </div>
+
+        <!-- 結果 -->
+        <div class="card" id="calcResultCard" style="display:none;">
+          <div class="card-header">
+            <span id="calcResultTitle"></span>
+            <button class="btn-secondary" onclick="calcCopyResult()">複製結果</button>
+          </div>
+          <div class="card-body" id="calcResultContent"></div>
+        </div>
+
+      </div>
+    </div>
+
   </div>
 
   <script src="app.js"></script>

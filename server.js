@@ -103,6 +103,67 @@ app.get('/api/health', (req, res) => {
   res.json({ ok: true, storage: process.env.DATABASE_URL ? 'postgresql' : 'json' });
 });
 
+// ── 每手股數查詢 ─────────────────────────────────────────────
+const _lotCache = {};
+
+app.get('/api/lotsize/:code', async (req, res) => {
+  const code = req.params.code;
+  if (!/^\d+$/.test(code)) return res.status(400).json({ error: '無效股票代號' });
+  if (_lotCache[code]) return res.json({ lotSize: _lotCache[code], source: '快取' });
+  try {
+    const lotSize = await scrapeEtnetLotSize(code);
+    if (lotSize) {
+      _lotCache[code] = lotSize;
+      return res.json({ lotSize, source: 'ETNet' });
+    }
+    res.status(404).json({ error: '無法取得每手股數，請手動輸入' });
+  } catch (e) {
+    res.status(404).json({ error: '無法取得每手股數，請手動輸入', debug: e.message });
+  }
+});
+
+async function scrapeEtnetLotSize(stockCode) {
+  const { chromium } = require('playwright');
+  const code = String(parseInt(stockCode)).padStart(4, '0');
+  const browser = await chromium.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+  });
+  try {
+    const context = await browser.newContext({
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      viewport: { width: 1280, height: 800 },
+    });
+    const page = await context.newPage();
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+    });
+    await page.goto('https://www.etnet.com.hk/www/sc/stocks/realtime/index.php', {
+      waitUntil: 'domcontentloaded',
+      timeout: 30000,
+    });
+    await page.fill('#globalsearch', code);
+    await page.press('#globalsearch', 'Enter');
+    await page.waitForSelector("li:has-text('單位'), li:has-text('单位')", { timeout: 20000 });
+    const value = await page.evaluate(() => {
+      for (const li of document.querySelectorAll('li')) {
+        const txt = li.textContent.trim();
+        if (txt === '單位' || txt === '单位') {
+          const sib = li.nextElementSibling;
+          if (sib) {
+            const n = parseInt(sib.textContent.trim().replace(/,/g, ''));
+            return isNaN(n) ? null : n;
+          }
+        }
+      }
+      return null;
+    });
+    return value || null;
+  } finally {
+    await browser.close();
+  }
+}
+
 const PORT = process.env.PORT || 3000;
 initStorage().then(() => {
   app.listen(PORT, () => {
