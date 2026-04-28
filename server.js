@@ -10,13 +10,14 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 let db;
 let feeDb;
+let pool = null;
 let storageReady = false;
 
 async function initStorage() {
   if (storageReady) return;
   if (process.env.DATABASE_URL) {
     const { Pool } = require('pg');
-    const pool = new Pool({
+    pool = new Pool({
       connectionString: process.env.DATABASE_URL,
       ssl: { rejectUnauthorized: false }
     });
@@ -203,15 +204,24 @@ app.get('/api/health', (req, res) => {
   res.json({ ok: true, storage: process.env.DATABASE_URL ? 'postgresql' : 'json' });
 });
 
-// 每手股數查詢（使用 HKEX 官方數據，本地查詢）
+// 每手股數查詢（優先查數據庫，回退至 JSON 靜態數據）
 const LOT_SIZE_DATA = require('./lotsize_data.json');
-app.get('/api/lotsize/:code', (req, res) => {
+app.get('/api/lotsize/:code', async (req, res) => {
   const code = req.params.code;
   if (!/^\d+$/.test(code)) return res.status(400).json({ error: '無效股票代號' });
-  const entry = LOT_SIZE_DATA[parseInt(code)];
-  if (entry) {
-    return res.json({ lotSize: entry.lot, stockName: entry.name, source: 'HKEX' });
+  const numCode = parseInt(code);
+
+  if (pool) {
+    try {
+      const result = await pool.query('SELECT name, lot FROM lot_sizes WHERE code = $1', [numCode]);
+      if (result.rows.length > 0) {
+        return res.json({ lotSize: result.rows[0].lot, stockName: result.rows[0].name, source: 'HKEX' });
+      }
+    } catch (e) { /* 數據庫查詢失敗，回退至 JSON */ }
   }
+
+  const entry = LOT_SIZE_DATA[numCode];
+  if (entry) return res.json({ lotSize: entry.lot, stockName: entry.name, source: 'HKEX' });
   res.status(404).json({ error: '無法取得每手股數，請手動輸入' });
 });
 
