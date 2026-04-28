@@ -1,0 +1,1488 @@
+{
+  "records": [
+    {
+      "record_id": "1776840316686",
+      "date_field": "2026-04-22",
+      "account": "234424150",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776840317176",
+      "date_field": "2026-04-22",
+      "account": "233845187",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776840317617",
+      "date_field": "2026-04-22",
+      "account": "234271350",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776840318056",
+      "date_field": "2026-04-22",
+      "account": "25485670",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776840318330",
+      "date_field": "2026-04-22",
+      "account": "233813572",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776840318764",
+      "date_field": "2026-04-22",
+      "account": "232251407",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776840319185",
+      "date_field": "2026-04-22",
+      "account": "30869163",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776840319442",
+      "date_field": "2026-04-22",
+      "account": "234018945",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776840319883",
+      "date_field": "2026-04-22",
+      "account": "234392997",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776840320165",
+      "date_field": "2026-04-22",
+      "account": "30772706",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776840320431",
+      "date_field": "2026-04-22",
+      "account": "231805767",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776840320689",
+      "date_field": "2026-04-22",
+      "account": "233128112",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776840320983",
+      "date_field": "2026-04-22",
+      "account": "234178292",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776840321246",
+      "date_field": "2026-04-22",
+      "account": "231268175",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776840321513",
+      "date_field": "2026-04-22",
+      "account": "233801667",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776840321949",
+      "date_field": "2026-04-22",
+      "account": "25589107",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776840322209",
+      "date_field": "2026-04-22",
+      "account": "16895516",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776840322459",
+      "date_field": "2026-04-22",
+      "account": "15189280",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776840322732",
+      "date_field": "2026-04-22",
+      "account": "234399382",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776840323012",
+      "date_field": "2026-04-22",
+      "account": "234367651",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776840323283",
+      "date_field": "2026-04-22",
+      "account": "14518365",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776840323542",
+      "date_field": "2026-04-22",
+      "account": "23215135",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776840323976",
+      "date_field": "2026-04-22",
+      "account": "31419359",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776840324406",
+      "date_field": "2026-04-22",
+      "account": "7038352",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776840324678",
+      "date_field": "2026-04-22",
+      "account": "232291145",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776842412862",
+      "date_field": "2026-04-22",
+      "account": "10723445",
+      "biz_type": "提實貨簽收"
+    },
+    {
+      "record_id": "1776842413348",
+      "date_field": "2026-04-22",
+      "account": "26822352",
+      "biz_type": "提實貨簽收"
+    },
+    {
+      "record_id": "1776842451002",
+      "date_field": "2026-04-22",
+      "account": "29879682",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1776842451329",
+      "date_field": "2026-04-22",
+      "account": "17054060",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1776842451759",
+      "date_field": "2026-04-22",
+      "account": "234164353",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1776842452023",
+      "date_field": "2026-04-22",
+      "account": "22853276",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1776842452285",
+      "date_field": "2026-04-22",
+      "account": "232168376",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1776842452726",
+      "date_field": "2026-04-22",
+      "account": "23350796",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1776842453163",
+      "date_field": "2026-04-22",
+      "account": "27687311",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1776842453427",
+      "date_field": "2026-04-22",
+      "account": "231644375",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1776842921134",
+      "date_field": "2026-04-20",
+      "account": "13979160",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776842921617",
+      "date_field": "2026-04-20",
+      "account": "232854131",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776842922059",
+      "date_field": "2026-04-20",
+      "account": "231844890",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776842922337",
+      "date_field": "2026-04-20",
+      "account": "23614761",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776842922609",
+      "date_field": "2026-04-20",
+      "account": "17951970",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776842923047",
+      "date_field": "2026-04-20",
+      "account": "231343567",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776842923476",
+      "date_field": "2026-04-20",
+      "account": "233695072",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776842923745",
+      "date_field": "2026-04-20",
+      "account": "640170",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776842924020",
+      "date_field": "2026-04-20",
+      "account": "231894592",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776842924281",
+      "date_field": "2026-04-20",
+      "account": "16200278",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776842924550",
+      "date_field": "2026-04-20",
+      "account": "234438912",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776842924817",
+      "date_field": "2026-04-20",
+      "account": "30869163",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776842925079",
+      "date_field": "2026-04-20",
+      "account": "23656277",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776842925518",
+      "date_field": "2026-04-20",
+      "account": "231587945",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776842925785",
+      "date_field": "2026-04-20",
+      "account": "29832427",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776842926051",
+      "date_field": "2026-04-20",
+      "account": "7543918",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776842926316",
+      "date_field": "2026-04-20",
+      "account": "31242076",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776842926583",
+      "date_field": "2026-04-20",
+      "account": "32157719",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776842926850",
+      "date_field": "2026-04-20",
+      "account": "5636440",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776843021200",
+      "date_field": "2026-04-20",
+      "account": "28569866",
+      "biz_type": "提實貨"
+    },
+    {
+      "record_id": "1776843021684",
+      "date_field": "2026-04-20",
+      "account": "232210739",
+      "biz_type": "提實貨"
+    },
+    {
+      "record_id": "1776843022130",
+      "date_field": "2026-04-20",
+      "account": "16172240",
+      "biz_type": "提實貨"
+    },
+    {
+      "record_id": "1776843022566",
+      "date_field": "2026-04-20",
+      "account": "14098170",
+      "biz_type": "提實貨"
+    },
+    {
+      "record_id": "1776843089990",
+      "date_field": "2026-04-20",
+      "account": "29128793",
+      "biz_type": "提實貨簽收"
+    },
+    {
+      "record_id": "1776843090479",
+      "date_field": "2026-04-20",
+      "account": "231507672",
+      "biz_type": "提實貨簽收"
+    },
+    {
+      "record_id": "1776843090911",
+      "date_field": "2026-04-20",
+      "account": "232514423",
+      "biz_type": "提實貨簽收"
+    },
+    {
+      "record_id": "1776843091354",
+      "date_field": "2026-04-20",
+      "account": "29027487",
+      "biz_type": "提實貨簽收"
+    },
+    {
+      "record_id": "1776843091822",
+      "date_field": "2026-04-20",
+      "account": "24579668",
+      "biz_type": "提實貨簽收"
+    },
+    {
+      "record_id": "1776843092088",
+      "date_field": "2026-04-20",
+      "account": "14919488",
+      "biz_type": "提實貨簽收"
+    },
+    {
+      "record_id": "1776843092538",
+      "date_field": "2026-04-20",
+      "account": "23757612",
+      "biz_type": "提實貨簽收"
+    },
+    {
+      "record_id": "1776843131987",
+      "date_field": "2026-04-20",
+      "account": "232148115",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1776843132472",
+      "date_field": "2026-04-20",
+      "account": "233436682",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1776843132906",
+      "date_field": "2026-04-20",
+      "account": "232094361",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1776843133174",
+      "date_field": "2026-04-20",
+      "account": "34598149",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1776843133442",
+      "date_field": "2026-04-20",
+      "account": "30295465",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1776843231618",
+      "date_field": "2026-04-21",
+      "account": "2614235",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776843231926",
+      "date_field": "2026-04-21",
+      "account": "23289513",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776843232359",
+      "date_field": "2026-04-21",
+      "account": "29756166",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776843232792",
+      "date_field": "2026-04-21",
+      "account": "28957919",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776843233072",
+      "date_field": "2026-04-21",
+      "account": "233807926",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776843233352",
+      "date_field": "2026-04-21",
+      "account": "26367629",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776843233627",
+      "date_field": "2026-04-21",
+      "account": "233139739",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776843233899",
+      "date_field": "2026-04-21",
+      "account": "232291145",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776843234175",
+      "date_field": "2026-04-21",
+      "account": "28559151",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776843234446",
+      "date_field": "2026-04-21",
+      "account": "12093513",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776843234880",
+      "date_field": "2026-04-21",
+      "account": "231713403",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776843235311",
+      "date_field": "2026-04-21",
+      "account": "27748796",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776843235750",
+      "date_field": "2026-04-21",
+      "account": "231853843",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776843236190",
+      "date_field": "2026-04-21",
+      "account": "231853843",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776843283959",
+      "date_field": "2026-04-21",
+      "account": "7354935",
+      "biz_type": "提實貨"
+    },
+    {
+      "record_id": "1776843284440",
+      "date_field": "2026-04-21",
+      "account": "14098170",
+      "biz_type": "提實貨"
+    },
+    {
+      "record_id": "1776843284715",
+      "date_field": "2026-04-21",
+      "account": "14098170",
+      "biz_type": "提實貨"
+    },
+    {
+      "record_id": "1776843284990",
+      "date_field": "2026-04-21",
+      "account": "16728498",
+      "biz_type": "提實貨"
+    },
+    {
+      "record_id": "1776843285427",
+      "date_field": "2026-04-21",
+      "account": "30933162",
+      "biz_type": "提實貨"
+    },
+    {
+      "record_id": "1776843285866",
+      "date_field": "2026-04-21",
+      "account": "26728975",
+      "biz_type": "提實貨"
+    },
+    {
+      "record_id": "1776843303981",
+      "date_field": "2026-04-21",
+      "account": "16804538",
+      "biz_type": "提實貨簽收"
+    },
+    {
+      "record_id": "1776843304463",
+      "date_field": "2026-04-21",
+      "account": "34585182",
+      "biz_type": "提實貨簽收"
+    },
+    {
+      "record_id": "1776843304904",
+      "date_field": "2026-04-21",
+      "account": "7018595",
+      "biz_type": "提實貨簽收"
+    },
+    {
+      "record_id": "1776843339680",
+      "date_field": "2026-04-21",
+      "account": "34497679",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1776843340153",
+      "date_field": "2026-04-21",
+      "account": "233257737",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1776843340419",
+      "date_field": "2026-04-21",
+      "account": "26298440",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1776843340849",
+      "date_field": "2026-04-21",
+      "account": "27687311",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1776926387339",
+      "date_field": "2026-04-23",
+      "account": "234247275",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776926387706",
+      "date_field": "2026-04-23",
+      "account": "234084851",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776926388214",
+      "date_field": "2026-04-23",
+      "account": "233482639",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776926388537",
+      "date_field": "2026-04-23",
+      "account": "231563660",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776926388858",
+      "date_field": "2026-04-23",
+      "account": "32722489",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776926389353",
+      "date_field": "2026-04-23",
+      "account": "234245391",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776926389839",
+      "date_field": "2026-04-23",
+      "account": "28047107",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776926390372",
+      "date_field": "2026-04-23",
+      "account": "24366315",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776926390870",
+      "date_field": "2026-04-23",
+      "account": "24594937",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776926391181",
+      "date_field": "2026-04-23",
+      "account": "15074605",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776926391501",
+      "date_field": "2026-04-23",
+      "account": "16546052",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776926391812",
+      "date_field": "2026-04-23",
+      "account": "17572735",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776926392313",
+      "date_field": "2026-04-23",
+      "account": "25485670",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776926392632",
+      "date_field": "2026-04-23",
+      "account": "231368465",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776926392965",
+      "date_field": "2026-04-23",
+      "account": "234272316",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776926393470",
+      "date_field": "2026-04-23",
+      "account": "233845187",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776926393968",
+      "date_field": "2026-04-23",
+      "account": "233813572",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776926394283",
+      "date_field": "2026-04-23",
+      "account": "231386105",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1776926442465",
+      "date_field": "2026-04-23",
+      "account": "14703878",
+      "biz_type": "提實貨"
+    },
+    {
+      "record_id": "1776926442994",
+      "date_field": "2026-04-23",
+      "account": "31606613",
+      "biz_type": "提實貨"
+    },
+    {
+      "record_id": "1776926514156",
+      "date_field": "2026-04-23",
+      "account": "26728975",
+      "biz_type": "提實貨簽收"
+    },
+    {
+      "record_id": "1776926514527",
+      "date_field": "2026-04-23",
+      "account": "26728975",
+      "biz_type": "提實貨簽收"
+    },
+    {
+      "record_id": "1776926515016",
+      "date_field": "2026-04-23",
+      "account": "26728975",
+      "biz_type": "提實貨簽收"
+    },
+    {
+      "record_id": "1776926515521",
+      "date_field": "2026-04-23",
+      "account": "26728975",
+      "biz_type": "提實貨簽收"
+    },
+    {
+      "record_id": "1776926515854",
+      "date_field": "2026-04-23",
+      "account": "26728975",
+      "biz_type": "提實貨簽收"
+    },
+    {
+      "record_id": "1776926516342",
+      "date_field": "2026-04-23",
+      "account": "26728975",
+      "biz_type": "提實貨簽收"
+    },
+    {
+      "record_id": "1776926516842",
+      "date_field": "2026-04-23",
+      "account": "26728975",
+      "biz_type": "提實貨簽收"
+    },
+    {
+      "record_id": "1776926517170",
+      "date_field": "2026-04-23",
+      "account": "26728975",
+      "biz_type": "提實貨簽收"
+    },
+    {
+      "record_id": "1776926517664",
+      "date_field": "2026-04-23",
+      "account": "26728975",
+      "biz_type": "提實貨簽收"
+    },
+    {
+      "record_id": "1776926517978",
+      "date_field": "2026-04-23",
+      "account": "232210739",
+      "biz_type": "提實貨簽收"
+    },
+    {
+      "record_id": "1776926567910",
+      "date_field": "2026-04-23",
+      "account": "232837473",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1776926568468",
+      "date_field": "2026-04-23",
+      "account": "34674912",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1776926568975",
+      "date_field": "2026-04-23",
+      "account": "233564419",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1776926569307",
+      "date_field": "2026-04-23",
+      "account": "25095861",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1776926569619",
+      "date_field": "2026-04-23",
+      "account": "27838895",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1776926569954",
+      "date_field": "2026-04-23",
+      "account": "28561839",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1777013106843",
+      "date_field": "2026-04-24",
+      "account": "30858392",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777013107386",
+      "date_field": "2026-04-24",
+      "account": "26728975",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777013107673",
+      "date_field": "2026-04-24",
+      "account": "25813818",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777013107982",
+      "date_field": "2026-04-24",
+      "account": "5629753",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777013108268",
+      "date_field": "2026-04-24",
+      "account": "234324452",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777013108747",
+      "date_field": "2026-04-24",
+      "account": "26209835",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777013109218",
+      "date_field": "2026-04-24",
+      "account": "31576538",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777013109510",
+      "date_field": "2026-04-24",
+      "account": "33948576",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777013109987",
+      "date_field": "2026-04-24",
+      "account": "234271350",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777013110275",
+      "date_field": "2026-04-24",
+      "account": "28364840",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777013110567",
+      "date_field": "2026-04-24",
+      "account": "234621350",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777013110856",
+      "date_field": "2026-04-24",
+      "account": "233813572",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777013111160",
+      "date_field": "2026-04-24",
+      "account": "26324083",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777013111445",
+      "date_field": "2026-04-24",
+      "account": "17060413",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777013111908",
+      "date_field": "2026-04-24",
+      "account": "232469731",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777013112190",
+      "date_field": "2026-04-24",
+      "account": "15950632",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777013112470",
+      "date_field": "2026-04-24",
+      "account": "231848960",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777013221892",
+      "date_field": "2026-04-24",
+      "account": "28569866",
+      "biz_type": "提實貨簽收"
+    },
+    {
+      "record_id": "1777013244274",
+      "date_field": "2026-04-24",
+      "account": "231899125",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1777013244793",
+      "date_field": "2026-04-24",
+      "account": "26238236",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1777013245263",
+      "date_field": "2026-04-24",
+      "account": "21636762",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1777013245748",
+      "date_field": "2026-04-24",
+      "account": "231369613",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1777013479441",
+      "date_field": "2026-04-24",
+      "account": "21154845",
+      "biz_type": "提實貨"
+    },
+    {
+      "record_id": "1777013479960",
+      "date_field": "2026-04-24",
+      "account": "31179776",
+      "biz_type": "提實貨"
+    },
+    {
+      "record_id": "1777270677480",
+      "date_field": "2026-04-27",
+      "account": "18080942",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777270678040",
+      "date_field": "2026-04-27",
+      "account": "22617625",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777270678355",
+      "date_field": "2026-04-27",
+      "account": "25274087",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777270678660",
+      "date_field": "2026-04-27",
+      "account": "12020399",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777270678982",
+      "date_field": "2026-04-27",
+      "account": "234097083",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777270679476",
+      "date_field": "2026-04-27",
+      "account": "30272429",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777270679984",
+      "date_field": "2026-04-27",
+      "account": "234380667",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777270680317",
+      "date_field": "2026-04-27",
+      "account": "14855116",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777270680658",
+      "date_field": "2026-04-27",
+      "account": "25626190",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777270680987",
+      "date_field": "2026-04-27",
+      "account": "234372303",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777270681321",
+      "date_field": "2026-04-27",
+      "account": "233581309",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777270681638",
+      "date_field": "2026-04-27",
+      "account": "10644733",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777270681970",
+      "date_field": "2026-04-27",
+      "account": "234259952",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777270730963",
+      "date_field": "2026-04-27",
+      "account": "31104841",
+      "biz_type": "提實貨"
+    },
+    {
+      "record_id": "1777270731498",
+      "date_field": "2026-04-27",
+      "account": "231733825",
+      "biz_type": "提實貨"
+    },
+    {
+      "record_id": "1777270731823",
+      "date_field": "2026-04-27",
+      "account": "34691096",
+      "biz_type": "提實貨"
+    },
+    {
+      "record_id": "1777270732142",
+      "date_field": "2026-04-27",
+      "account": "34660386",
+      "biz_type": "提實貨"
+    },
+    {
+      "record_id": "1777270732648",
+      "date_field": "2026-04-27",
+      "account": "233291092",
+      "biz_type": "提實貨"
+    },
+    {
+      "record_id": "1777270752115",
+      "date_field": "2026-04-27",
+      "account": "14098170",
+      "biz_type": "提實貨簽收"
+    },
+    {
+      "record_id": "1777270752667",
+      "date_field": "2026-04-27",
+      "account": "14098170",
+      "biz_type": "提實貨簽收"
+    },
+    {
+      "record_id": "1777270770427",
+      "date_field": "2026-04-27",
+      "account": "233677252",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1777270771754",
+      "date_field": "2026-04-27",
+      "account": "30654998",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1777358934260",
+      "date_field": "2026-04-28",
+      "account": "26485390",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777358934623",
+      "date_field": "2026-04-28",
+      "account": "17230495",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777358934946",
+      "date_field": "2026-04-28",
+      "account": "7153818",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777358935446",
+      "date_field": "2026-04-28",
+      "account": "34766359",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777358935942",
+      "date_field": "2026-04-28",
+      "account": "32890583",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777358936275",
+      "date_field": "2026-04-28",
+      "account": "234024385",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777358936800",
+      "date_field": "2026-04-28",
+      "account": "233574140",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777358937117",
+      "date_field": "2026-04-28",
+      "account": "32699568",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777358937437",
+      "date_field": "2026-04-28",
+      "account": "234308347",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777358937755",
+      "date_field": "2026-04-28",
+      "account": "234454953",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777358938237",
+      "date_field": "2026-04-28",
+      "account": "232559157",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777358938541",
+      "date_field": "2026-04-28",
+      "account": "231392549",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777358939062",
+      "date_field": "2026-04-28",
+      "account": "5624983",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777358939389",
+      "date_field": "2026-04-28",
+      "account": "232536027",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777358939711",
+      "date_field": "2026-04-28",
+      "account": "232856375",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777358940235",
+      "date_field": "2026-04-28",
+      "account": "234689029",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777358940757",
+      "date_field": "2026-04-28",
+      "account": "233574140",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777358941081",
+      "date_field": "2026-04-28",
+      "account": "234454025",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777358941410",
+      "date_field": "2026-04-28",
+      "account": "231594892",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777358941740",
+      "date_field": "2026-04-28",
+      "account": "21281930",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777358942059",
+      "date_field": "2026-04-28",
+      "account": "28600372",
+      "biz_type": "存實貨"
+    },
+    {
+      "record_id": "1777358962928",
+      "date_field": "2026-04-28",
+      "account": "26728975",
+      "biz_type": "提實貨"
+    },
+    {
+      "record_id": "1777358963474",
+      "date_field": "2026-04-28",
+      "account": "587025",
+      "biz_type": "提實貨"
+    },
+    {
+      "record_id": "1777358963799",
+      "date_field": "2026-04-28",
+      "account": "132579",
+      "biz_type": "提實貨"
+    },
+    {
+      "record_id": "1777358972994",
+      "date_field": "2026-04-28",
+      "account": "14703878",
+      "biz_type": "提實貨簽收"
+    },
+    {
+      "record_id": "1777359006342",
+      "date_field": "2026-04-28",
+      "account": "232659687",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1777359006904",
+      "date_field": "2026-04-28",
+      "account": "231338230",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1777359007241",
+      "date_field": "2026-04-28",
+      "account": "232136089",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1777359007759",
+      "date_field": "2026-04-28",
+      "account": "26127573",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    },
+    {
+      "record_id": "1777359008094",
+      "date_field": "2026-04-28",
+      "account": "32528187",
+      "biz_type": "結單/賬戶證明扣款/審計"
+    }
+  ],
+  "fee_records": [
+    {
+      "record_id": "1777359252602",
+      "date_field": "2026-04-20",
+      "account": "34585182",
+      "stock_code": "1396",
+      "lot_size": 2000,
+      "mode": "normal",
+      "total_fee": "4705",
+      "hkscc_fee": "3293.5",
+      "company_fee": "1411.5",
+      "total_shares": 1880303
+    },
+    {
+      "record_id": "1777359275549",
+      "date_field": "2026-04-20",
+      "account": "10723445",
+      "stock_code": "388",
+      "lot_size": 100,
+      "mode": "normal",
+      "total_fee": "503.5",
+      "hkscc_fee": "3.5",
+      "company_fee": "500",
+      "total_shares": 100
+    },
+    {
+      "record_id": "1777359363754",
+      "date_field": "2026-04-22",
+      "account": "28569866",
+      "stock_code": "440",
+      "lot_size": 400,
+      "mode": "normal",
+      "total_fee": "675",
+      "hkscc_fee": "175",
+      "company_fee": "500",
+      "total_shares": 20000
+    },
+    {
+      "record_id": "1777359411458",
+      "date_field": "2026-04-22",
+      "account": "28569866",
+      "stock_code": "2388",
+      "lot_size": 500,
+      "mode": "normal",
+      "total_fee": "640",
+      "hkscc_fee": "140",
+      "company_fee": "500",
+      "total_shares": 20000
+    },
+    {
+      "record_id": "1777359447200",
+      "date_field": "2026-04-22",
+      "account": "16172240",
+      "stock_code": "941",
+      "lot_size": 500,
+      "mode": "normal",
+      "total_fee": "591",
+      "hkscc_fee": "91",
+      "company_fee": "500",
+      "total_shares": 13000
+    },
+    {
+      "record_id": "1777359467366",
+      "date_field": "2026-04-22",
+      "account": "232210739",
+      "stock_code": "916",
+      "lot_size": 1000,
+      "mode": "normal",
+      "total_fee": "850",
+      "hkscc_fee": "350",
+      "company_fee": "500",
+      "total_shares": 100000
+    },
+    {
+      "record_id": "1777359561585",
+      "date_field": "2026-04-20",
+      "account": "7018595",
+      "stock_code": "883",
+      "lot_size": 1000,
+      "mode": "normal",
+      "total_fee": "2500",
+      "hkscc_fee": "1750",
+      "company_fee": "750",
+      "total_shares": 500000
+    },
+    {
+      "record_id": "1777359606451",
+      "date_field": "2026-04-23",
+      "account": "14098170",
+      "stock_code": "2399",
+      "lot_size": 1000,
+      "mode": "normal",
+      "total_fee": "200000",
+      "hkscc_fee": "140000",
+      "company_fee": "60000",
+      "total_shares": 40000000
+    },
+    {
+      "record_id": "1777359621397",
+      "date_field": "2026-04-23",
+      "account": "14098170",
+      "stock_code": "2399",
+      "lot_size": 1000,
+      "mode": "normal",
+      "total_fee": "211000",
+      "hkscc_fee": "147700",
+      "company_fee": "63300",
+      "total_shares": 42200000
+    },
+    {
+      "record_id": "1777359780603",
+      "date_field": "2026-04-23",
+      "account": "7354935",
+      "stock_code": "1255",
+      "lot_size": 2000,
+      "mode": "normal",
+      "total_fee": "517.5",
+      "hkscc_fee": "17.5",
+      "company_fee": "500",
+      "total_shares": 10000
+    },
+    {
+      "record_id": "1777360015195",
+      "date_field": "2026-04-23",
+      "account": "16728498",
+      "stock_code": "1922",
+      "lot_size": 2000,
+      "mode": "normal",
+      "total_fee": "528",
+      "hkscc_fee": "28",
+      "company_fee": "500",
+      "total_shares": 16000
+    },
+    {
+      "record_id": "1777360054592",
+      "date_field": "2026-04-24",
+      "account": "30933162",
+      "stock_code": "3798",
+      "lot_size": 2000,
+      "mode": "normal",
+      "total_fee": "1648",
+      "hkscc_fee": "1148",
+      "company_fee": "500",
+      "total_shares": 656000
+    },
+    {
+      "record_id": "1777360079813",
+      "date_field": "2026-04-27",
+      "account": "31606613",
+      "stock_code": "941",
+      "lot_size": 500,
+      "mode": "normal",
+      "total_fee": "633",
+      "hkscc_fee": "133",
+      "company_fee": "500",
+      "total_shares": 19000
+    },
+    {
+      "record_id": "1777360089590",
+      "date_field": "2026-04-27",
+      "account": "14703878",
+      "stock_code": "941",
+      "lot_size": 500,
+      "mode": "normal",
+      "total_fee": "633",
+      "hkscc_fee": "133",
+      "company_fee": "500",
+      "total_shares": 9000
+    },
+    {
+      "record_id": "1777360139527",
+      "date_field": "2026-04-27",
+      "account": "26728975",
+      "stock_code": "3918",
+      "lot_size": 2000,
+      "mode": "split",
+      "total_fee": "503.5",
+      "hkscc_fee": "3.5",
+      "company_fee": "500",
+      "total_shares": 50
+    },
+    {
+      "record_id": "1777360155196",
+      "date_field": "2026-04-27",
+      "account": "26728975",
+      "stock_code": "68",
+      "lot_size": 500,
+      "mode": "split",
+      "total_fee": "503.5",
+      "hkscc_fee": "3.5",
+      "company_fee": "500",
+      "total_shares": 50
+    },
+    {
+      "record_id": "1777360180770",
+      "date_field": "2026-04-27",
+      "account": "26728975",
+      "stock_code": "2476",
+      "lot_size": 100,
+      "mode": "split",
+      "total_fee": "503.5",
+      "hkscc_fee": "3.5",
+      "company_fee": "500",
+      "total_shares": 20
+    },
+    {
+      "record_id": "1777360371422",
+      "date_field": "2026-04-28",
+      "account": "31179776",
+      "stock_code": "762",
+      "lot_size": 2000,
+      "mode": "normal",
+      "total_fee": "1441.5",
+      "hkscc_fee": "941.5",
+      "company_fee": "500",
+      "total_shares": 538000
+    },
+    {
+      "record_id": "1777360409739",
+      "date_field": "2026-04-28",
+      "account": "21154845",
+      "stock_code": "8",
+      "lot_size": 1000,
+      "mode": "normal",
+      "total_fee": "503.5",
+      "hkscc_fee": "3.5",
+      "company_fee": "500",
+      "total_shares": 1000
+    }
+  ]
+}

@@ -1,18 +1,20 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const axios = require('axios');
 require('dotenv').config();
 
 const app = express();
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 
 let db;
 let feeDb;
+let storageReady = false;
 
 async function initStorage() {
+  if (storageReady) return;
   if (process.env.DATABASE_URL) {
-    // 雲端模式：PostgreSQL
     const { Pool } = require('pg');
     const pool = new Pool({
       connectionString: process.env.DATABASE_URL,
@@ -87,7 +89,6 @@ async function initStorage() {
     };
     console.log('📦 使用 PostgreSQL 存儲');
   } else {
-    // 本地模式：JSON 文件
     const DATA_FILE = path.join(__dirname, 'data.json');
     const load = () => fs.existsSync(DATA_FILE)
       ? JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'))
@@ -129,7 +130,18 @@ async function initStorage() {
     };
     console.log('📁 使用本地 JSON 存儲');
   }
+  storageReady = true;
 }
+
+// 所有 /api 路由先確保存儲已初始化
+app.use('/api', async (req, res, next) => {
+  try {
+    await initStorage();
+    next();
+  } catch (err) {
+    res.status(500).json({ code: -1, msg: err.message });
+  }
+});
 
 app.get('/api/records', async (req, res) => {
   try {
@@ -191,72 +203,48 @@ app.get('/api/health', (req, res) => {
   res.json({ ok: true, storage: process.env.DATABASE_URL ? 'postgresql' : 'json' });
 });
 
-// ── 每手股數查詢 ─────────────────────────────────────────────
+// 每手股數查詢（使用 Yahoo Finance API，無需瀏覽器）
 app.get('/api/lotsize/:code', async (req, res) => {
   const code = req.params.code;
   if (!/^\d+$/.test(code)) return res.status(400).json({ error: '無效股票代號' });
   try {
-    const result = await scrapeEtnetLotSize(code);
-    if (result) return res.json({ lotSize: result.lotSize, stockName: result.stockName, source: 'ETNet' });
+    const symbol = String(parseInt(code)).padStart(4, '0') + '.HK';
+    const response = await axios.get(
+      `https://query1.finance.yahoo.com/v8/finance/quote?symbols=${symbol}`,
+      {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Accept': 'application/json'
+        },
+        timeout: 8000
+      }
+    );
+    const result = response.data?.quoteResponse?.result?.[0];
+    if (result?.regularMarketLotSize) {
+      return res.json({
+        lotSize: result.regularMarketLotSize,
+        stockName: result.longName || result.shortName || null,
+        source: 'Yahoo Finance'
+      });
+    }
     res.status(404).json({ error: '無法取得每手股數，請手動輸入' });
   } catch (e) {
-    res.status(404).json({ error: '無法取得每手股數，請手動輸入', debug: e.message });
+    res.status(404).json({ error: '無法取得每手股數，請手動輸入' });
   }
 });
 
-async function scrapeEtnetLotSize(stockCode) {
-  const { chromium } = require('playwright');
-  const code = String(parseInt(stockCode)).padStart(4, '0');
-  const browser = await chromium.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+module.exports = app;
+
+// 本地開發直接執行時才啟動監聽
+if (require.main === module) {
+  const PORT = process.env.PORT || 3000;
+  initStorage().then(() => {
+    app.listen(PORT, () => {
+      console.log(`✅ 每日走袋統計已啟動`);
+      console.log(`🌐 http://localhost:${PORT}`);
+    });
+  }).catch(err => {
+    console.error('啟動失敗:', err);
+    process.exit(1);
   });
-  try {
-    const context = await browser.newContext({
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-      viewport: { width: 1280, height: 800 },
-    });
-    const page = await context.newPage();
-    await page.addInitScript(() => {
-      Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
-    });
-    await page.goto('https://www.etnet.com.hk/www/sc/stocks/realtime/index.php', {
-      waitUntil: 'domcontentloaded',
-      timeout: 30000,
-    });
-    await page.fill('#globalsearch', code);
-    await page.press('#globalsearch', 'Enter');
-    await page.waitForSelector("li:has-text('單位'), li:has-text('单位')", { timeout: 20000 });
-    const result = await page.evaluate(() => {
-      let lotSize = null;
-      for (const li of document.querySelectorAll('li')) {
-        const txt = li.textContent.trim();
-        if (txt === '單位' || txt === '单位') {
-          const sib = li.nextElementSibling;
-          if (sib) {
-            const n = parseInt(sib.textContent.trim().replace(/,/g, ''));
-            if (!isNaN(n)) lotSize = n;
-          }
-        }
-      }
-      const header = document.getElementById('StkQuoteHeader');
-      const headerText = header ? header.textContent.trim() : '';
-      const stockName = headerText.replace(/^\d+\s*/, '').trim() || null;
-      return { lotSize, stockName };
-    });
-    return result.lotSize ? result : null;
-  } finally {
-    await browser.close();
-  }
 }
-
-const PORT = process.env.PORT || 3000;
-initStorage().then(() => {
-  app.listen(PORT, () => {
-    console.log(`✅ 每日走袋統計已啟動`);
-    console.log(`🌐 http://localhost:${PORT}`);
-  });
-}).catch(err => {
-  console.error('啟動失敗:', err);
-  process.exit(1);
-});
