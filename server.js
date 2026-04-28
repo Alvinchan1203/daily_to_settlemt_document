@@ -203,34 +203,16 @@ app.get('/api/health', (req, res) => {
   res.json({ ok: true, storage: process.env.DATABASE_URL ? 'postgresql' : 'json' });
 });
 
-// 每手股數查詢（使用 Yahoo Finance API，無需瀏覽器）
-app.get('/api/lotsize/:code', async (req, res) => {
+// 每手股數查詢（使用 HKEX 官方數據，本地查詢）
+const LOT_SIZE_DATA = require('./lotsize_data.json');
+app.get('/api/lotsize/:code', (req, res) => {
   const code = req.params.code;
   if (!/^\d+$/.test(code)) return res.status(400).json({ error: '無效股票代號' });
-  try {
-    const symbol = String(parseInt(code)).padStart(4, '0') + '.HK';
-    const response = await axios.get(
-      `https://query1.finance.yahoo.com/v8/finance/quote?symbols=${symbol}`,
-      {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          'Accept': 'application/json'
-        },
-        timeout: 8000
-      }
-    );
-    const result = response.data?.quoteResponse?.result?.[0];
-    if (result?.regularMarketLotSize) {
-      return res.json({
-        lotSize: result.regularMarketLotSize,
-        stockName: result.longName || result.shortName || null,
-        source: 'Yahoo Finance'
-      });
-    }
-    res.status(404).json({ error: '無法取得每手股數，請手動輸入' });
-  } catch (e) {
-    res.status(404).json({ error: '無法取得每手股數，請手動輸入' });
+  const entry = LOT_SIZE_DATA[parseInt(code)];
+  if (entry) {
+    return res.json({ lotSize: entry.lot, stockName: entry.name, source: 'HKEX' });
   }
+  res.status(404).json({ error: '無法取得每手股數，請手動輸入' });
 });
 
 module.exports = app;
