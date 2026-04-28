@@ -274,7 +274,7 @@ function renderStats() {
     const totalGrand   = feeRecords.reduce((s, r) => s + Number(r.total_fee), 0);
     document.getElementById('feeTableFoot').innerHTML = `
       <tr>
-        <td colspan="5" style="font-weight:600;">合計（${feeRecords.length} 筆）</td>
+        <td colspan="6" style="font-weight:600;">合計（${feeRecords.length} 筆）</td>
         <td style="text-align:right; font-weight:600;">HK$${totalHkscc.toFixed(2)}</td>
         <td style="text-align:right; font-weight:600;">HK$${totalCompany.toFixed(2)}</td>
         <td style="text-align:right; font-weight:600; color:var(--blue);">HK$${totalGrand.toFixed(2)}</td>
@@ -286,6 +286,7 @@ function renderStats() {
         <td>${r.account || '-'}</td>
         <td>${r.stock_code || '-'}</td>
         <td>${r.lot_size ? r.lot_size.toLocaleString() : '-'}</td>
+        <td>${r.total_shares ? r.total_shares.toLocaleString() : '-'}</td>
         <td><span class="biz-tag">${r.mode === 'split' ? '特別拆細' : '一般提取'}</span></td>
         <td style="text-align:right;">HK$${Number(r.hkscc_fee).toFixed(2)}</td>
         <td style="text-align:right;">HK$${Number(r.company_fee).toFixed(2)}</td>
@@ -485,7 +486,7 @@ function calcNormal(lotSize) {
   calcLastResult = calcBuildPlainNormal(total, lotSize, whole, frac, totalLots, hkscc, coRaw, coFee, grand);
   calcShowResult('一般提取', html, {
     date: todayStr, stock_code: document.getElementById('calcStockCode').value.trim() || '',
-    lot_size: lotSize, mode: 'normal', total_fee: grand, hkscc_fee: hkscc, company_fee: coFee
+    lot_size: lotSize, mode: 'normal', total_shares: total, total_fee: grand, hkscc_fee: hkscc, company_fee: coFee
   });
 }
 
@@ -544,7 +545,7 @@ function calcSplitCalc(lotSize) {
   calcLastResult = calcBuildPlainSplit(sharesList, total, lotSize, whole, frac, totalLots, nCerts, extra, hkscc, coPerLot, admin, coRaw, coFee, grand);
   calcShowResult('特別拆細提取', html, {
     date: todayStr, stock_code: document.getElementById('calcStockCode').value.trim() || '',
-    lot_size: lotSize, mode: 'split', total_fee: grand, hkscc_fee: hkscc, company_fee: coFee
+    lot_size: lotSize, mode: 'split', total_shares: total, total_fee: grand, hkscc_fee: hkscc, company_fee: coFee
   });
 }
 

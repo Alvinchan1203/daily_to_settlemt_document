@@ -39,6 +39,7 @@ async function initStorage() {
         company_fee NUMERIC
       )
     `);
+    await pool.query(`ALTER TABLE fee_records ADD COLUMN IF NOT EXISTS total_shares INTEGER`);
     db = {
       getAll: async () => {
         const result = await pool.query(
@@ -67,17 +68,17 @@ async function initStorage() {
         return result.rows.map(r => ({
           record_id: r.record_id,
           date: r.date_field, account: r.account, stock_code: r.stock_code,
-          lot_size: r.lot_size, mode: r.mode,
+          lot_size: r.lot_size, mode: r.mode, total_shares: r.total_shares,
           total_fee: parseFloat(r.total_fee), hkscc_fee: parseFloat(r.hkscc_fee),
           company_fee: parseFloat(r.company_fee)
         }));
       },
       insert: async (record_id, data) => {
         await pool.query(
-          `INSERT INTO fee_records (record_id, date_field, account, stock_code, lot_size, mode, total_fee, hkscc_fee, company_fee)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+          `INSERT INTO fee_records (record_id, date_field, account, stock_code, lot_size, mode, total_shares, total_fee, hkscc_fee, company_fee)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
           [record_id, data.date, data.account, data.stock_code, data.lot_size,
-           data.mode, data.total_fee, data.hkscc_fee, data.company_fee]
+           data.mode, data.total_shares || null, data.total_fee, data.hkscc_fee, data.company_fee]
         );
       },
       remove: async (record_id) => {
