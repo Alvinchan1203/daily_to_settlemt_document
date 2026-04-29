@@ -326,7 +326,7 @@ function renderStats() {
     const totalGrand   = feeRecords.reduce((s, r) => s + Number(r.total_fee), 0);
     document.getElementById('feeTableFoot').innerHTML = `
       <tr>
-        <td colspan="6" style="font-weight:600;">合計（${feeRecords.length} 筆）</td>
+        <td colspan="7" style="font-weight:600;">合計（${feeRecords.length} 筆）</td>
         <td style="text-align:right; font-weight:600;">HK$${totalHkscc.toFixed(2)}</td>
         <td style="text-align:right; font-weight:600;">HK$${totalCompany.toFixed(2)}</td>
         <td style="text-align:right; font-weight:600; color:var(--blue);">HK$${totalGrand.toFixed(2)}</td>
@@ -372,7 +372,7 @@ function renderStats() {
 
   document.getElementById('tableFoot').innerHTML = `
     <tr>
-      <td colspan="2">合計</td>
+      <td colspan="3">合計</td>
       <td>${grandTotal} 筆</td>
       <td></td>
     </tr>`;
