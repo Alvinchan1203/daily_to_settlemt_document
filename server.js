@@ -134,9 +134,31 @@ async function initStorage() {
   storageReady = true;
 }
 
-// 所有 /api 路由先確保存儲已初始化
+// 密碼驗證端點（不需要密碼就能訪問）
+app.post('/api/verify-password', (req, res) => {
+  const { password } = req.body;
+  if (!process.env.APP_PASSWORD || password === process.env.APP_PASSWORD) {
+    res.json({ code: 0 });
+  } else {
+    res.status(401).json({ code: -1, msg: '密碼錯誤' });
+  }
+});
+
+// 所有 /api 路由先確保存儲已初始化，並驗證密碼
 app.use('/api', async (req, res, next) => {
   try {
+    // 跳過不需要密碼的端點
+    if (req.path === '/health' || req.path === '/verify-password') {
+      await initStorage();
+      return next();
+    }
+    // 密碼檢查
+    if (process.env.APP_PASSWORD) {
+      const pwd = req.headers['x-app-password'];
+      if (pwd !== process.env.APP_PASSWORD) {
+        return res.status(401).json({ code: -1, msg: '請先輸入密碼' });
+      }
+    }
     await initStorage();
     next();
   } catch (err) {

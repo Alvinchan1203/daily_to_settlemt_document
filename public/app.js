@@ -1,3 +1,55 @@
+// ===== 密碼保護 =====
+let appPassword = sessionStorage.getItem('appPassword') || '';
+
+// 攔截所有 /api 請求，自動加入密碼 header
+const _origFetch = window.fetch.bind(window);
+window.fetch = function(url, options = {}) {
+  if (typeof url === 'string' && url.startsWith('/api') && appPassword) {
+    options = { ...options, headers: { ...(options.headers || {}), 'X-App-Password': appPassword } };
+  }
+  return _origFetch(url, options);
+};
+
+async function doLogin() {
+  const pwd = document.getElementById('loginPassword').value;
+  if (!pwd) { document.getElementById('loginError').textContent = '請輸入密碼'; return; }
+  try {
+    const res = await _origFetch('/api/verify-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pwd })
+    });
+    if (res.ok) {
+      appPassword = pwd;
+      sessionStorage.setItem('appPassword', pwd);
+      document.getElementById('loginOverlay').style.display = 'none';
+      loadTodayRecords();
+    } else {
+      document.getElementById('loginError').textContent = '密碼錯誤，請重試';
+      document.getElementById('loginPassword').value = '';
+      document.getElementById('loginPassword').focus();
+    }
+  } catch {
+    document.getElementById('loginError').textContent = '連線失敗，請重試';
+  }
+}
+
+async function initApp() {
+  if (appPassword) {
+    const res = await _origFetch('/api/verify-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: appPassword })
+    });
+    if (res.ok) { loadTodayRecords(); return; }
+    sessionStorage.removeItem('appPassword');
+    appPassword = '';
+  }
+  const overlay = document.getElementById('loginOverlay');
+  overlay.style.display = 'flex';
+  setTimeout(() => document.getElementById('loginPassword').focus(), 100);
+}
+
 const FIELDS = [
   '存實貨',
   '提實貨',
@@ -381,7 +433,7 @@ async function fetchAllFeeRecords() {
   return data.data.items || [];
 }
 
-loadTodayRecords();
+initApp();
 
 // ===== 收費計算器 =====
 const CALC_HKSCC_PER_LOT = 3.50;
