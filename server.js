@@ -182,6 +182,17 @@ app.post('/api/records/batch', async (req, res) => {
   }
 });
 
+app.post('/api/records/batch-delete', async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ code: -1, msg: '無效 ids' });
+    await Promise.all(ids.map(id => db.remove(id)));
+    res.json({ code: 0 });
+  } catch (err) {
+    res.status(500).json({ code: -1, msg: err.message });
+  }
+});
+
 app.delete('/api/records/:recordId', async (req, res) => {
   try {
     await db.remove(req.params.recordId);
@@ -205,6 +216,17 @@ app.post('/api/fee-records', async (req, res) => {
     const record_id = Date.now().toString();
     await feeDb.insert(record_id, req.body);
     res.json({ code: 0, data: { record_id } });
+  } catch (err) {
+    res.status(500).json({ code: -1, msg: err.message });
+  }
+});
+
+app.post('/api/fee-records/batch-delete', async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ code: -1, msg: '無效 ids' });
+    await Promise.all(ids.map(id => feeDb.remove(id)));
+    res.json({ code: 0 });
   } catch (err) {
     res.status(500).json({ code: -1, msg: err.message });
   }

@@ -118,10 +118,12 @@ async function loadTodayRecords() {
       document.getElementById('todayTableWrapper').style.display = 'block';
       document.getElementById('todayTableBody').innerHTML = dayRecs.map(r => `
         <tr>
+          <td style="padding:12px 8px;"><input type="checkbox" class="row-check" data-type="today" data-id="${r.record_id}" onchange="onCheckChange('today')"></td>
           <td>${r.fields['牛牛號'] || '-'}</td>
           <td><span class="biz-tag">${r.fields['業務類型'] || '-'}</span></td>
           <td><button class="btn-delete" onclick="deleteRecord('${r.record_id}')" title="刪除">✕</button></td>
         </tr>`).join('');
+      resetCheckAll('today');
     }
   } catch (e) {
     document.getElementById('todayEmpty').textContent = '載入失敗：' + e.message;
@@ -280,6 +282,7 @@ function renderStats() {
       </tr>`;
     document.getElementById('feeTableBody').innerHTML = feeRecords.map(r => `
       <tr>
+        <td style="padding:12px 8px;"><input type="checkbox" class="row-check" data-type="fee" data-id="${r.record_id}" onchange="onCheckChange('fee')"></td>
         <td>${r.date || '-'}</td>
         <td>${r.account || '-'}</td>
         <td>${r.stock_code || '-'}</td>
@@ -291,6 +294,7 @@ function renderStats() {
         <td style="text-align:right; font-weight:600; color:var(--blue);">HK$${Number(r.total_fee).toFixed(2)}</td>
         <td><button class="btn-delete" onclick="deleteFeeRecord('${r.record_id}')" title="刪除">✕</button></td>
       </tr>`).join('');
+    resetCheckAll('fee');
   }
 
   document.getElementById('statsLoading').style.display = 'none';
@@ -306,11 +310,13 @@ function renderStats() {
 
   document.getElementById('tableBody').innerHTML = records.map(r => `
     <tr>
+      <td style="padding:12px 8px;"><input type="checkbox" class="row-check" data-type="stats" data-id="${r.record_id}" onchange="onCheckChange('stats')"></td>
       <td>${r.fields['日期'] || '-'}</td>
       <td>${r.fields['牛牛號'] || '-'}</td>
       <td><span class="biz-tag">${r.fields['業務類型'] || '-'}</span></td>
       <td><button class="btn-delete" onclick="deleteRecord('${r.record_id}', 'stats')" title="刪除">✕</button></td>
     </tr>`).join('');
+  resetCheckAll('stats');
 
   document.getElementById('tableFoot').innerHTML = `
     <tr>
@@ -692,6 +698,57 @@ function calcBuildPlainSplit(sharesList, total, lotSize, whole, frac, totalLots,
   lines.push(`富途證券手續費合計 : HK$${coFee.toFixed(2)}`, '='.repeat(38),
     `總費用       : HK$${grand.toFixed(2)}`, '='.repeat(38));
   return lines.join('\n');
+}
+
+// ===== 多選刪除 =====
+function onCheckChange(type) {
+  const all = [...document.querySelectorAll(`.row-check[data-type="${type}"]`)];
+  const checked = all.filter(c => c.checked);
+  const btn = document.getElementById(`${type}DeleteBtn`);
+  const countEl = document.getElementById(`${type}SelectedCount`);
+  if (btn) { btn.style.display = checked.length > 0 ? '' : 'none'; countEl.textContent = checked.length; }
+  const checkAll = document.getElementById(`checkAll-${type}`);
+  if (checkAll) {
+    checkAll.checked = checked.length === all.length && all.length > 0;
+    checkAll.indeterminate = checked.length > 0 && checked.length < all.length;
+  }
+  document.querySelectorAll(`.row-check[data-type="${type}"]`).forEach(c => {
+    c.closest('tr').classList.toggle('row-selected', c.checked);
+  });
+}
+
+function toggleCheckAll(type) {
+  const checkAll = document.getElementById(`checkAll-${type}`);
+  document.querySelectorAll(`.row-check[data-type="${type}"]`).forEach(c => { c.checked = checkAll.checked; });
+  onCheckChange(type);
+}
+
+function resetCheckAll(type) {
+  const checkAll = document.getElementById(`checkAll-${type}`);
+  if (checkAll) { checkAll.checked = false; checkAll.indeterminate = false; }
+  const btn = document.getElementById(`${type}DeleteBtn`);
+  if (btn) btn.style.display = 'none';
+}
+
+async function deleteSelected(type) {
+  const checked = [...document.querySelectorAll(`.row-check[data-type="${type}"]:checked`)];
+  if (checked.length === 0) return;
+  if (!confirm(`確認刪除 ${checked.length} 筆記錄？`)) return;
+  const ids = checked.map(c => c.dataset.id);
+  try {
+    const endpoint = type === 'fee' ? '/api/fee-records/batch-delete' : '/api/records/batch-delete';
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids })
+    });
+    const data = await res.json();
+    if (data.code !== 0) throw new Error(data.msg);
+    if (type === 'today') loadTodayRecords();
+    else loadStats();
+  } catch (e) {
+    alert('刪除失敗：' + e.message);
+  }
 }
 
 document.addEventListener('keydown', e => {

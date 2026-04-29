@@ -70,8 +70,11 @@
         <!-- 右欄：今日記錄 -->
         <div class="card">
           <div class="card-header">
-            <span id="todayLabel">今日記錄</span>
-            <span class="count-badge" id="todayCount">0</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span id="todayLabel">今日記錄</span>
+              <span class="count-badge" id="todayCount">0</span>
+            </div>
+            <button id="todayDeleteBtn" class="btn-danger" style="display:none" onclick="deleteSelected('today')">刪除已選 <span id="todaySelectedCount">0</span> 筆</button>
           </div>
 
           <div id="todayLoading" style="padding:20px; color:var(--text3)">載入中...</div>
@@ -80,6 +83,7 @@
             <table class="futu-table">
               <thead style="position:sticky; top:0; z-index:1">
                 <tr>
+                  <th style="width:36px;padding:12px 8px;"><input type="checkbox" id="checkAll-today" onchange="toggleCheckAll('today')"></th>
                   <th>牛牛號</th>
                   <th>業務類型</th>
                   <th style="width:36px"></th>
@@ -130,12 +134,16 @@
 
       <!-- 提取實物股票費用紀錄 -->
       <div class="card" style="margin-bottom:20px;">
-        <div class="card-header">提取實物股票費用紀錄</div>
+        <div class="card-header">
+          <span>提取實物股票費用紀錄</span>
+          <button id="feeDeleteBtn" class="btn-danger" style="display:none" onclick="deleteSelected('fee')">刪除已選 <span id="feeSelectedCount">0</span> 筆</button>
+        </div>
         <div id="feeEmpty" class="empty-state" style="display:none;">暫無費用紀錄</div>
         <div id="feeTableWrapper" style="display:none; max-height:400px; overflow-y:auto;">
           <table class="futu-table">
             <thead style="position:sticky; top:0; z-index:1;">
               <tr>
+                <th style="width:36px;padding:12px 8px;"><input type="checkbox" id="checkAll-fee" onchange="toggleCheckAll('fee')"></th>
                 <th>日期</th>
                 <th>牛牛號</th>
                 <th>股票代號</th>
@@ -156,13 +164,17 @@
 
       <!-- 明細表格 -->
       <div class="card">
-        <div class="card-header">業務明細</div>
+        <div class="card-header">
+          <span>業務明細</span>
+          <button id="statsDeleteBtn" class="btn-danger" style="display:none" onclick="deleteSelected('stats')">刪除已選 <span id="statsSelectedCount">0</span> 筆</button>
+        </div>
         <div id="statsLoading" style="padding:20px; color:var(--text3); display:none">載入中...</div>
         <div id="noData" class="empty-state" style="display:none">暫無數據</div>
         <div id="tableWrapper" style="display:none; max-height:560px; overflow-y:auto">
           <table class="futu-table">
             <thead style="position:sticky; top:0; z-index:1">
               <tr>
+                <th style="width:36px;padding:12px 8px;"><input type="checkbox" id="checkAll-stats" onchange="toggleCheckAll('stats')"></th>
                 <th>日期</th>
                 <th>牛牛號</th>
                 <th>業務類型</th>

@@ -218,6 +218,29 @@ textarea.form-input {
   color: #fff;
 }
 
+.btn-danger {
+  background: #fff;
+  color: var(--red);
+  border: 1px solid var(--red);
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-danger:hover { background: var(--red); color: #fff; }
+
+.futu-table tbody tr.row-selected { background: #EBF3FF; }
+
+.row-check {
+  cursor: pointer;
+  width: 15px;
+  height: 15px;
+  accent-color: var(--blue);
+}
+
 /* ===== 篩選標籤 ===== */
 .filter-tabs {
   display: flex;
