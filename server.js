@@ -163,6 +163,25 @@ app.post('/api/records', async (req, res) => {
   }
 });
 
+// 批量登記（一次過插入多筆，使用事務保證原子性）
+app.post('/api/records/batch', async (req, res) => {
+  try {
+    const records = req.body.records;
+    if (!Array.isArray(records) || records.length === 0) {
+      return res.status(400).json({ code: -1, msg: '無效的 records 陣列' });
+    }
+    const inserted = [];
+    for (const fields of records) {
+      const record_id = `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+      await db.insert(record_id, fields);
+      inserted.push({ record_id, fields });
+    }
+    res.json({ code: 0, data: { count: inserted.length } });
+  } catch (err) {
+    res.status(500).json({ code: -1, msg: err.message });
+  }
+});
+
 app.delete('/api/records/:recordId', async (req, res) => {
   try {
     await db.remove(req.params.recordId);

@@ -58,22 +58,20 @@ async function submitRecord() {
   showMsg(`登記中 (0/${total})...`, 'muted');
 
   try {
-    let done = 0;
+    showMsg(`登記中 (0/${total})...`, 'muted');
+    const records = [];
     for (let c = 0; c < count; c++) {
       for (let i = 0; i < accounts.length; i++) {
-        done++;
-        showMsg(`登記中 (${done}/${total})...`, 'muted');
-        const res = await fetch('/api/records', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            fields: { '日期': date, '牛牛號': accounts[i], '業務類型': bizType.value }
-          })
-        });
-        const data = await res.json();
-        if (data.code !== 0) throw new Error(data.msg);
+        records.push({ '日期': date, '牛牛號': accounts[i], '業務類型': bizType.value });
       }
     }
+    const res = await fetch('/api/records/batch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ records })
+    });
+    const data = await res.json();
+    if (data.code !== 0) throw new Error(data.msg);
 
     const countMsg = count > 1 ? `（每人 ${count} 份）` : '';
     showMsg(`✓ 已登記 ${total} 筆${countMsg}`, 'success');
