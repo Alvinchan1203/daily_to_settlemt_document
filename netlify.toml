@@ -3,6 +3,9 @@
   publish = "public"
   functions = "netlify/functions"
 
+[functions]
+  included_files = ["lotsize_data.json"]
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/server"

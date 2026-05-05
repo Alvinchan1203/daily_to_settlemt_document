@@ -55,7 +55,7 @@ exports.handler = schedule('0 1 * * *', async () => {
       const name = String(row[1] || '').trim();
       const category = String(row[2] || '').trim();
       const lot = parseInt(String(row[4] || '').replace(/,/g, ''));
-      if (/^\d{5}$/.test(code) && category === 'Equity' && !isNaN(lot) && lot > 0) {
+      if (/^\d{5}$/.test(code) && name && !isNaN(lot) && lot > 0) {
         stocks.push([parseInt(code), name, lot]);
       }
     }

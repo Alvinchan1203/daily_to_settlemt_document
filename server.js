@@ -148,7 +148,7 @@ app.post('/api/verify-password', (req, res) => {
 app.use('/api', async (req, res, next) => {
   try {
     // 跳過不需要密碼的端點
-    if (req.path === '/health' || req.path === '/verify-password') {
+    if (req.path === '/health' || req.path === '/verify-password' || req.path === '/debug-lotsize') {
       await initStorage();
       return next();
     }
@@ -268,7 +268,9 @@ app.get('/api/health', (req, res) => {
 });
 
 // 每手股數查詢（優先查數據庫，回退至 JSON 靜態數據）
-const LOT_SIZE_DATA = require('./lotsize_data.json');
+const LOT_SIZE_DATA = global._LOTSIZE_DATA || (() => {
+  try { return JSON.parse(fs.readFileSync(path.join(__dirname, 'lotsize_data.json'), 'utf-8')); } catch(e) { return {}; }
+})();
 app.get('/api/lotsize/:code', async (req, res) => {
   const code = req.params.code;
   if (!/^\d+$/.test(code)) return res.status(400).json({ error: '無效股票代號' });
@@ -286,6 +288,14 @@ app.get('/api/lotsize/:code', async (req, res) => {
   const entry = LOT_SIZE_DATA[numCode];
   if (entry) return res.json({ lotSize: entry.lot, stockName: entry.name, source: 'HKEX' });
   res.status(404).json({ error: '無法取得每手股數，請手動輸入' });
+});
+
+app.get('/api/debug-lotsize', (req, res) => {
+  res.json({
+    globalCount: global._LOTSIZE_DATA ? Object.keys(global._LOTSIZE_DATA).length : 0,
+    jsonCount: Object.keys(LOT_SIZE_DATA).length,
+    entry2800: LOT_SIZE_DATA[2800] || null
+  });
 });
 
 module.exports = app;

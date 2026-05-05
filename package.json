@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "build": "node generate-lotsize.js"
+    "build": "node generate-lotsize.js && node -e \"require('fs').copyFileSync('lotsize_data.json','netlify/functions/lotsize_data.json')\""
   },
   "engines": {
     "node": ">=18.0.0"
