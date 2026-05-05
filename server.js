@@ -19,30 +19,10 @@ async function initStorage() {
     const { Pool } = require('pg');
     pool = new Pool({
       connectionString: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false }
+      ssl: { rejectUnauthorized: false },
+      connectionTimeoutMillis: 8000,
+      max: 1
     });
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS records (
-        record_id TEXT PRIMARY KEY,
-        date_field TEXT NOT NULL,
-        account TEXT NOT NULL,
-        biz_type TEXT NOT NULL
-      )
-    `);
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS fee_records (
-        record_id TEXT PRIMARY KEY,
-        date_field TEXT NOT NULL,
-        account TEXT NOT NULL,
-        stock_code TEXT,
-        lot_size INTEGER,
-        mode TEXT,
-        total_fee NUMERIC,
-        hkscc_fee NUMERIC,
-        company_fee NUMERIC
-      )
-    `);
-    await pool.query(`ALTER TABLE fee_records ADD COLUMN IF NOT EXISTS total_shares INTEGER`);
     db = {
       getAll: async () => {
         const result = await pool.query(
@@ -164,6 +144,17 @@ app.use('/api', async (req, res, next) => {
   } catch (err) {
     res.status(500).json({ code: -1, msg: err.message });
   }
+});
+
+// 一次性建表端點（新部署後手動執行一次）
+app.get('/api/migrate', async (req, res) => {
+  if (!pool) return res.status(500).json({ error: 'No database' });
+  try {
+    await pool.query(`CREATE TABLE IF NOT EXISTS records (record_id TEXT PRIMARY KEY, date_field TEXT NOT NULL, account TEXT NOT NULL, biz_type TEXT NOT NULL)`);
+    await pool.query(`CREATE TABLE IF NOT EXISTS fee_records (record_id TEXT PRIMARY KEY, date_field TEXT NOT NULL, account TEXT NOT NULL, stock_code TEXT, lot_size INTEGER, mode TEXT, total_fee NUMERIC, hkscc_fee NUMERIC, company_fee NUMERIC)`);
+    await pool.query(`ALTER TABLE fee_records ADD COLUMN IF NOT EXISTS total_shares INTEGER`);
+    res.json({ ok: true });
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.get('/api/records', async (req, res) => {
