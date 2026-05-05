@@ -1,0 +1,19 @@
+name: Update Lot Sizes
+
+on:
+  schedule:
+    - cron: '0 1 * * *'  # 9am HKT (UTC+8 = UTC 01:00)
+  workflow_dispatch:      # allow manual trigger from GitHub UI
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - run: npm install pg xlsx
+      - run: node scripts/update-lotsize-db.js
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
