@@ -128,7 +128,7 @@ app.post('/api/verify-password', (req, res) => {
 app.use('/api', async (req, res, next) => {
   try {
     // 跳過不需要密碼的端點
-    if (req.path === '/health' || req.path === '/verify-password' || req.path === '/debug-lotsize') {
+    if (req.path === '/health' || req.path === '/verify-password' || req.path === '/debug-lotsize' || req.path === '/migrate') {
       await initStorage();
       return next();
     }
