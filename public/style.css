@@ -63,6 +63,7 @@ body {
   border-bottom: 1px solid var(--border);
   padding: 0 32px;
   display: flex;
+  position: relative;
 }
 
 .tab-item {
