@@ -500,9 +500,10 @@ function buildStockCardHTML(stock, idx) {
         ${stock.certShares.map((s, i) => `
           <div class="calc-cert-row">
             <label>第${i+1}張：</label>
-            <input type="number" class="form-input" placeholder="股數" min="1" style="width:120px;"
+            <input id="calcCertInput_${stock.id}_${i}" type="number" class="form-input calc-cert-input" placeholder="股數" min="1" style="width:120px;"
               value="${s || ''}"
-              oninput="calcUpdateCertShare(${stock.id},${i},this.value)" />
+              oninput="calcUpdateCertShare(${stock.id},${i},this.value)"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();event.stopPropagation();var n=document.getElementById('calcCertInput_${stock.id}_${i+1}');if(n)n.focus();}" />
             <span style="color:var(--text3);font-size:13px;">股</span>
           </div>`).join('')}
       </div>
@@ -583,9 +584,10 @@ function renderCertFields(id) {
       ${stock.certShares.map((s, i) => `
         <div class="calc-cert-row">
           <label>第${i+1}張：</label>
-          <input type="number" class="form-input" placeholder="股數" min="1" style="width:120px;"
+          <input id="calcCertInput_${id}_${i}" type="number" class="form-input calc-cert-input" placeholder="股數" min="1" style="width:120px;"
             value="${s || ''}"
-            oninput="calcUpdateCertShare(${id},${i},this.value)" />
+            oninput="calcUpdateCertShare(${id},${i},this.value)"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();event.stopPropagation();var n=document.getElementById('calcCertInput_${id}_${i+1}');if(n)n.focus();}" />
           <span style="color:var(--text3);font-size:13px;">股</span>
         </div>`).join('')}
     </div>
