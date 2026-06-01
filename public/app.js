@@ -447,7 +447,7 @@ let calcResults = null;
 
 function calcAddStock() {
   const id = Date.now() + calcStocks.length;
-  calcStocks.push({ id, code: '', name: '', lotSize: null, mode: 'normal', shares: null, nCerts: null, dataDate: undefined });
+  calcStocks.push({ id, code: '', name: '', lotSize: null, mode: 'normal', shares: null, nCerts: null, certShares: [], dataDate: undefined });
   renderCalcStocks();
 }
 
@@ -494,22 +494,33 @@ function buildStockCardHTML(stock, idx) {
         <span style="color:var(--text2);white-space:nowrap;">股</span>
       </div>
     </div>`;
+  const certFieldsHtml = stock.certShares.length > 0
+    ? `<div class="calc-cert-scroll" style="margin-top:8px;">
+        ${stock.certShares.map((s, i) => `
+          <div class="calc-cert-row">
+            <label>第${i+1}張：</label>
+            <input type="number" class="form-input" placeholder="股數" min="1" style="width:120px;"
+              value="${s || ''}"
+              oninput="calcUpdateCertShare(${stock.id},${i},this.value)" />
+            <span style="color:var(--text3);font-size:13px;">股</span>
+          </div>`).join('')}
+      </div>
+      <div id="calcCertTotal_${stock.id}" style="margin-top:8px;font-size:13px;color:var(--blue);font-weight:600;">${calcCertTotalText(stock)}</div>`
+    : `<div id="calcCertTotal_${stock.id}"></div>`;
   const splitPanel = `
-    <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;">
-      <div>
-        <label class="form-label">總提取股數</label>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <input id="calcShares_${stock.id}" type="number" class="form-input" style="width:140px;" placeholder="請輸入股數" min="1" value="${sharesVal}" oninput="calcUpdateField(${stock.id},'shares',this.value)" />
-          <span style="color:var(--text2);white-space:nowrap;">股</span>
+    <div>
+      <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:8px;">
+        <div>
+          <label class="form-label">分拆張數</label>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input id="calcCerts_${stock.id}" type="number" class="form-input" style="width:100px;" placeholder="張數" min="1" value="${certsVal}"
+              onkeydown="if(event.key==='Enter'){event.stopPropagation();calcGenCerts(${stock.id});}" />
+            <span style="color:var(--text2);white-space:nowrap;">張</span>
+          </div>
         </div>
+        <button class="btn-secondary" onclick="calcGenCerts(${stock.id})">確認</button>
       </div>
-      <div>
-        <label class="form-label">分拆張數</label>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <input id="calcCerts_${stock.id}" type="number" class="form-input" style="width:100px;" placeholder="張數" min="1" value="${certsVal}" oninput="calcUpdateField(${stock.id},'nCerts',this.value)" />
-          <span style="color:var(--text2);white-space:nowrap;">張</span>
-        </div>
-      </div>
+      <div id="calcCertFields_${stock.id}">${certFieldsHtml}</div>
     </div>`;
   return `
     <div class="card-header">
@@ -540,6 +551,59 @@ function buildStockCardHTML(stock, idx) {
       </div>
       ${stock.mode === 'normal' ? normalPanel : splitPanel}
     </div>`;
+}
+
+function calcCertTotalText(stock) {
+  if (!stock.certShares || !stock.certShares.length) return '';
+  const filled = stock.certShares.filter(s => s > 0);
+  const total  = filled.reduce((a, b) => a + b, 0);
+  return `已輸入 ${filled.length}/${stock.certShares.length} 張，總股數：${total.toLocaleString()} 股`;
+}
+
+function calcGenCerts(id) {
+  const stock = calcStocks.find(s => s.id === id);
+  if (!stock) return;
+  const certsEl = document.getElementById(`calcCerts_${id}`);
+  const n = certsEl ? parseInt(certsEl.value) : 0;
+  if (!n || n < 1) { alert('請輸入有效張數（正整數）'); return; }
+  stock.nCerts = n;
+  const old = stock.certShares || [];
+  stock.certShares = Array.from({ length: n }, (_, i) => old[i] || null);
+  renderCertFields(id);
+}
+
+function renderCertFields(id) {
+  const stock = calcStocks.find(s => s.id === id);
+  if (!stock) return;
+  const container = document.getElementById(`calcCertFields_${id}`);
+  if (!container) return;
+  container.innerHTML = `
+    <div class="calc-cert-scroll" style="margin-top:8px;">
+      ${stock.certShares.map((s, i) => `
+        <div class="calc-cert-row">
+          <label>第${i+1}張：</label>
+          <input type="number" class="form-input" placeholder="股數" min="1" style="width:120px;"
+            value="${s || ''}"
+            oninput="calcUpdateCertShare(${id},${i},this.value)" />
+          <span style="color:var(--text3);font-size:13px;">股</span>
+        </div>`).join('')}
+    </div>
+    <div id="calcCertTotal_${id}" style="margin-top:8px;font-size:13px;color:var(--blue);font-weight:600;">${calcCertTotalText(stock)}</div>`;
+}
+
+function calcUpdateCertShare(id, certIdx, value) {
+  const stock = calcStocks.find(s => s.id === id);
+  if (!stock) return;
+  stock.certShares[certIdx] = value ? parseInt(value) : null;
+  const totalEl = document.getElementById(`calcCertTotal_${id}`);
+  if (totalEl) totalEl.textContent = calcCertTotalText(stock);
+}
+
+function calcToggleCertDetail(btn) {
+  const detailEl = btn.closest('.calc-section-title').nextElementSibling;
+  const show = detailEl.style.display === 'none';
+  detailEl.style.display = show ? '' : 'none';
+  btn.textContent = show ? '隱藏明細' : '顯示明細';
 }
 
 function calcUpdateField(id, field, value) {
@@ -595,14 +659,17 @@ async function calcLookupForStock(id) {
 
 function calcSyncInputs() {
   for (const stock of calcStocks) {
-    const codeEl   = document.getElementById(`calcCode_${stock.id}`);
-    const lotEl    = document.getElementById(`calcLot_${stock.id}`);
-    const sharesEl = document.getElementById(`calcShares_${stock.id}`);
-    const certsEl  = document.getElementById(`calcCerts_${stock.id}`);
-    if (codeEl)   stock.code    = codeEl.value.trim();
-    if (lotEl)    stock.lotSize = lotEl.value    ? parseInt(lotEl.value)    : null;
-    if (sharesEl) stock.shares  = sharesEl.value ? parseInt(sharesEl.value) : null;
-    if (certsEl)  stock.nCerts  = certsEl.value  ? parseInt(certsEl.value)  : null;
+    const codeEl = document.getElementById(`calcCode_${stock.id}`);
+    const lotEl  = document.getElementById(`calcLot_${stock.id}`);
+    if (codeEl) stock.code    = codeEl.value.trim();
+    if (lotEl)  stock.lotSize = lotEl.value ? parseInt(lotEl.value) : null;
+    if (stock.mode === 'normal') {
+      const sharesEl = document.getElementById(`calcShares_${stock.id}`);
+      if (sharesEl) stock.shares = sharesEl.value ? parseInt(sharesEl.value) : null;
+    } else {
+      const certsEl = document.getElementById(`calcCerts_${stock.id}`);
+      if (certsEl && certsEl.value) stock.nCerts = parseInt(certsEl.value);
+    }
   }
 }
 
@@ -612,24 +679,32 @@ function calcRunAll() {
   for (let i = 0; i < calcStocks.length; i++) {
     const stock = calcStocks[i];
     if (!stock.lotSize || stock.lotSize < 1) { alert(`股票 #${i+1}：請輸入每手股數`); return; }
-    if (!stock.shares  || stock.shares  < 1) { alert(`股票 #${i+1}：請輸入提取股數`); return; }
-    const { lotSize, shares: total, mode } = stock;
-    const whole     = Math.floor(total / lotSize);
-    const frac      = total % lotSize;
-    const totalLots = whole + (frac > 0 ? 1 : 0);
-    const hkscc     = totalLots * CALC_HKSCC_PER_LOT;
-    if (mode === 'normal') {
-      const coRaw = totalLots * CALC_CO_PER_LOT;
-      const coFee = Math.max(CALC_CO_MIN, coRaw);
+    if (stock.mode === 'normal') {
+      if (!stock.shares || stock.shares < 1) { alert(`股票 #${i+1}：請輸入提取股數`); return; }
+      const { lotSize, shares: total } = stock;
+      const whole     = Math.floor(total / lotSize);
+      const frac      = total % lotSize;
+      const totalLots = whole + (frac > 0 ? 1 : 0);
+      const hkscc     = totalLots * CALC_HKSCC_PER_LOT;
+      const coRaw     = totalLots * CALC_CO_PER_LOT;
+      const coFee     = Math.max(CALC_CO_MIN, coRaw);
       results.push({ stock, total, whole, frac, totalLots, hkscc, coRaw, coFee, grand: hkscc + coFee, mode: 'normal' });
     } else {
-      const nCerts   = stock.nCerts || 1;
+      if (!stock.certShares || stock.certShares.length === 0) { alert(`股票 #${i+1}：請先輸入分拆張數並點擊「確認」`); return; }
+      if (stock.certShares.some(s => !s || s < 1)) { alert(`股票 #${i+1}：請填入所有分拆張數的股數`); return; }
+      const nCerts   = stock.certShares.length;
+      const total    = stock.certShares.reduce((a, b) => a + b, 0);
+      const lotSize  = stock.lotSize;
+      const whole    = Math.floor(total / lotSize);
+      const frac     = total % lotSize;
+      const totalLots = whole + (frac > 0 ? 1 : 0);
+      const hkscc    = totalLots * CALC_HKSCC_PER_LOT;
       const coPerLot = totalLots * CALC_CO_PER_LOT;
       const extra    = Math.max(0, nCerts - CALC_FREE_CERTS);
       const admin    = extra * CALC_SPLIT_ADMIN;
       const coRaw    = coPerLot + admin;
       const coFee    = Math.max(CALC_CO_MIN, coRaw);
-      results.push({ stock, total, whole, frac, totalLots, hkscc, coRaw, coFee, grand: hkscc + coFee, mode: 'split', nCerts, extra, admin, coPerLot });
+      results.push({ stock, total, whole, frac, totalLots, hkscc, coRaw, coFee, grand: hkscc + coFee, mode: 'split', nCerts, extra, admin, coPerLot, certShares: stock.certShares });
     }
   }
   calcResults = results;
@@ -646,13 +721,24 @@ function renderCalcResults(results) {
     const label     = r.stock.code ? `${r.stock.code}${r.stock.name ? ` ${r.stock.name}` : ''}` : `股票 #${idx+1}`;
     const modeLabel = r.mode === 'normal' ? '一般提取' : '特別拆細提取';
     const coPerLot  = r.mode === 'split' ? r.coPerLot : r.coRaw;
+    const certDetailHtml = r.certShares ? `
+      <div class="calc-section-title">拆細明細
+        <button class="calc-detail-toggle" onclick="calcToggleCertDetail(this)">顯示明細</button>
+      </div>
+      <div style="display:none; margin-bottom:8px;">
+        <table class="calc-detail-table">
+          ${r.certShares.map((s, i) => `<tr><td>第 ${i+1} 張</td><td style="text-align:right;">${s.toLocaleString()} 股</td></tr>`).join('')}
+        </table>
+      </div>
+      <div class="calc-row"><span>分拆總張數</span><span>${r.nCerts} 張</span></div>
+      <div class="calc-row subtotal"><span>總提取股數</span><span>${r.total.toLocaleString()} 股</span></div>` : '';
     html += `<div class="calc-section">
       <div class="calc-section-title">${multi ? `股票 ${idx+1}：` : ''}${label}（${modeLabel}）</div>
-      <div class="calc-row"><span>提取股數</span><span>${r.total.toLocaleString()} 股</span></div>
+      ${r.certShares ? certDetailHtml : `
+      <div class="calc-row"><span>提取股數</span><span>${r.total.toLocaleString()} 股</span></div>`}
       <div class="calc-row"><span>每手股數</span><span>${r.stock.lotSize.toLocaleString()} 股</span></div>
       <div class="calc-row"><span>整手數</span><span>${r.whole.toLocaleString()} 手</span></div>
       ${r.frac > 0 ? `<div class="calc-row"><span>碎股（作一手計）</span><span>${r.frac.toLocaleString()} 股</span></div>` : ''}
-      ${r.mode === 'split' ? `<div class="calc-row"><span>分拆張數</span><span>${r.nCerts} 張</span></div>` : ''}
       <div class="calc-row subtotal"><span>收費手數</span><span>${r.totalLots.toLocaleString()} 手</span></div>
     </div>
     <div class="calc-section">
@@ -695,7 +781,7 @@ async function calcCopyResults() {
     if (calcResults.length > 1) lines.push(`【股票 ${idx+1}：${r.stock.code}${r.stock.name ? ` ${r.stock.name}` : ''}】`);
     lines.push(r.mode === 'normal'
       ? calcBuildPlainNormal(r.total, r.stock.lotSize, r.whole, r.frac, r.totalLots, r.hkscc, r.coRaw, r.coFee, r.grand)
-      : calcBuildPlainSplit(r.total, r.stock.lotSize, r.whole, r.frac, r.totalLots, r.nCerts, r.extra, r.hkscc, r.coPerLot, r.admin, r.coRaw, r.coFee, r.grand));
+      : calcBuildPlainSplit(r.total, r.stock.lotSize, r.whole, r.frac, r.totalLots, r.nCerts, r.extra, r.hkscc, r.coPerLot, r.admin, r.coRaw, r.coFee, r.grand, r.certShares));
   });
   if (calcResults.length > 1) {
     lines.push('='.repeat(38), `總費用合計   : HK$${calcResults.reduce((s,r) => s+r.grand, 0).toFixed(2)}`, '='.repeat(38));
@@ -784,9 +870,13 @@ function calcBuildPlainNormal(total, lotSize, whole, frac, totalLots, hkscc, coR
   return lines.join('\n');
 }
 
-function calcBuildPlainSplit(total, lotSize, whole, frac, totalLots, nCerts, extra, hkscc, coPerLot, admin, coRaw, coFee, grand) {
-  const lines = ['特別拆細提取收費明細', '='.repeat(38),
-    `分拆總張數   : ${nCerts} 張`, `總提取股數   : ${total.toLocaleString()} 股`, '-'.repeat(38),
+function calcBuildPlainSplit(total, lotSize, whole, frac, totalLots, nCerts, extra, hkscc, coPerLot, admin, coRaw, coFee, grand, certShares) {
+  const lines = ['特別拆細提取收費明細', '='.repeat(38)];
+  if (certShares && certShares.length) {
+    lines.push('拆細明細：');
+    certShares.forEach((s, i) => lines.push(`  第${i+1}張 : ${s.toLocaleString()} 股`));
+  }
+  lines.push(`分拆總張數   : ${nCerts} 張`, `總提取股數   : ${total.toLocaleString()} 股`, '-'.repeat(38),
     `每手股數     : ${lotSize.toLocaleString()} 股`,
     `整手數       : ${whole.toLocaleString()} 手`];
   if (frac > 0) lines.push(`碎股（作一手）: ${frac.toLocaleString()} 股`);
