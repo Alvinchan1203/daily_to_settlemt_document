@@ -1,5 +1,6 @@
 // ===== 密碼保護 =====
 let appPassword = sessionStorage.getItem('appPassword') || '';
+let pendingTab = null;
 
 // 攔截所有 /api 請求，自動加入密碼 header
 const _origFetch = window.fetch.bind(window);
@@ -23,7 +24,10 @@ async function doLogin() {
       appPassword = pwd;
       sessionStorage.setItem('appPassword', pwd);
       document.getElementById('loginOverlay').style.display = 'none';
-      loadTodayRecords();
+      const target = pendingTab || 'input';
+      pendingTab = null;
+      switchTab(target);
+      if (target === 'input') loadTodayRecords();
     } else {
       document.getElementById('loginError').textContent = '密碼錯誤，請重試';
       document.getElementById('loginPassword').value = '';
@@ -41,13 +45,15 @@ async function initApp() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: appPassword })
     });
-    if (res.ok) { loadTodayRecords(); return; }
+    if (res.ok) {
+      switchTab('input');
+      loadTodayRecords();
+      return;
+    }
     sessionStorage.removeItem('appPassword');
     appPassword = '';
   }
-  const overlay = document.getElementById('loginOverlay');
-  overlay.style.display = 'flex';
-  setTimeout(() => document.getElementById('loginPassword').focus(), 100);
+  // No stored password — stay on public calc tab (no login required)
 }
 
 const FIELDS = [
@@ -67,16 +73,34 @@ const todayStr = new Date().toLocaleDateString('sv-SE');
 document.getElementById('dateInput').value = todayStr;
 
 // 分頁切換
+const PRIVATE_TABS = new Set(['input', 'stats', 'calc']);
+
+function switchTab(tab) {
+  document.querySelectorAll('[data-tab]').forEach(l => l.classList.remove('active'));
+  const link = document.querySelector(`[data-tab="${tab}"]`);
+  if (link) link.classList.add('active');
+  document.getElementById('tab-input').style.display = tab === 'input' ? 'block' : 'none';
+  document.getElementById('tab-stats').style.display = tab === 'stats' ? 'block' : 'none';
+  document.getElementById('tab-calc').style.display  = (tab === 'calc' || tab === 'calc-public') ? 'block' : 'none';
+  calcIsPublic = tab === 'calc-public';
+  if (calcResults) {
+    document.getElementById('calcConfirmCard').style.display = calcIsPublic ? 'none' : '';
+  }
+  if (tab === 'stats') loadStats();
+}
+
 document.querySelectorAll('[data-tab]').forEach(link => {
   link.addEventListener('click', e => {
     e.preventDefault();
     const tab = e.currentTarget.dataset.tab;
-    document.querySelectorAll('[data-tab]').forEach(l => l.classList.remove('active'));
-    e.currentTarget.classList.add('active');
-    document.getElementById('tab-input').style.display = tab === 'input' ? 'block' : 'none';
-    document.getElementById('tab-stats').style.display = tab === 'stats' ? 'block' : 'none';
-    document.getElementById('tab-calc').style.display  = tab === 'calc'  ? 'block' : 'none';
-    if (tab === 'stats') loadStats();
+    if (PRIVATE_TABS.has(tab) && !appPassword) {
+      pendingTab = tab;
+      const overlay = document.getElementById('loginOverlay');
+      overlay.style.display = 'flex';
+      setTimeout(() => document.getElementById('loginPassword').focus(), 100);
+      return;
+    }
+    switchTab(tab);
   });
 });
 
@@ -436,6 +460,7 @@ async function fetchAllFeeRecords() {
 initApp();
 
 // ===== 收費計算器 =====
+let calcIsPublic = true;
 const CALC_HKSCC_PER_LOT = 3.50;
 const CALC_CO_PER_LOT    = 1.50;
 const CALC_SPLIT_ADMIN   = 100.00;
@@ -804,7 +829,7 @@ function renderCalcResults(results) {
   document.getElementById('calcResultsContent').innerHTML = html;
   const card = document.getElementById('calcResultsCard');
   card.style.display = '';
-  document.getElementById('calcConfirmCard').style.display = '';
+  document.getElementById('calcConfirmCard').style.display = calcIsPublic ? 'none' : '';
   document.getElementById('calcConfirmDate').value = todayStr;
   document.getElementById('calcAccountInput').value = '';
   document.getElementById('calcConfirmMsg').textContent = '';
@@ -985,7 +1010,7 @@ async function deleteSelected(type) {
 
 document.addEventListener('keydown', e => {
   if (e.key !== 'Enter') return;
-  if (e.target.id === 'calcAccountInput') { calcConfirmApply(); return; }
+  if (e.target.id === 'calcAccountInput' && !calcIsPublic) { calcConfirmApply(); return; }
   if (e.target.closest && e.target.closest('#tab-calc') && !e.target.classList.contains('calc-code-input')) calcRunAll();
 });
 

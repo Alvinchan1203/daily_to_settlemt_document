@@ -15,15 +15,16 @@
 
   <!-- 分頁標籤（底線式）-->
   <div class="tab-bar">
-    <a class="tab-item active" href="#" data-tab="input">登記業務</a>
+    <a class="tab-item" href="#" data-tab="input">登記業務</a>
     <a class="tab-item" href="#" data-tab="calc">申請提取實物股票收費計算</a>
+    <a class="tab-item active" href="#" data-tab="calc-public">申請提取實物股票收費計算(公用版)</a>
     <a class="tab-item" href="#" data-tab="stats">統計查看</a>
   </div>
 
   <div class="main-content">
 
     <!-- ===== 登記頁面 ===== -->
-    <div id="tab-input">
+    <div id="tab-input" style="display:none">
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start">
 
         <!-- 左欄：輸入表單 -->
@@ -190,8 +191,8 @@
     </div>
   </div>
 
-    <!-- ===== 收費計算頁面 ===== -->
-    <div id="tab-calc" style="display:none;">
+    <!-- ===== 收費計算頁面（私用版 + 公用版共用） ===== -->
+    <div id="tab-calc">
       <div class="calc-wrap">
 
         <!-- 股票列表（動態生成）-->
