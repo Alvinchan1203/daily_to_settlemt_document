@@ -11,6 +11,13 @@ window.fetch = function(url, options = {}) {
   return _origFetch(url, options);
 };
 
+function dismissLogin() {
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('loginError').textContent = '';
+  document.getElementById('loginPassword').value = '';
+  pendingTab = null;
+}
+
 async function doLogin() {
   const pwd = document.getElementById('loginPassword').value;
   if (!pwd) { document.getElementById('loginError').textContent = '請輸入密碼'; return; }

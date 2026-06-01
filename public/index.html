@@ -244,7 +244,8 @@
 
   <!-- 登入密碼 overlay -->
   <div id="loginOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;align-items:center;justify-content:center;">
-    <div style="background:#fff;border-radius:12px;padding:36px 32px;width:320px;box-shadow:0 8px 32px rgba(0,0,0,0.18);text-align:center;">
+    <div style="background:#fff;border-radius:12px;padding:36px 32px;width:320px;box-shadow:0 8px 32px rgba(0,0,0,0.18);text-align:center;position:relative;">
+      <button onclick="dismissLogin()" style="position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;color:#9CA3AF;cursor:pointer;line-height:1;">✕</button>
       <div style="font-size:18px;font-weight:700;color:#1A1A1A;margin-bottom:6px;">月會數據統計</div>
       <div style="font-size:13px;color:#595959;margin-bottom:24px;">請輸入密碼以繼續</div>
       <input type="password" id="loginPassword" class="form-input" placeholder="輸入密碼"
