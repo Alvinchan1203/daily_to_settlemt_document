@@ -706,7 +706,7 @@ function calcRunAll() {
       const admin    = extra * CALC_SPLIT_ADMIN;
       const coRaw    = coPerLot + admin;
       const coFee    = Math.max(CALC_CO_MIN, coRaw);
-      const fracFee  = (frac > 0 && coPerLot > CALC_CO_MIN) ? CALC_FRAC_FEE : 0;
+      const fracFee  = (frac > 0 && coPerLot > CALC_CO_MIN && nCerts > CALC_FREE_CERTS) ? CALC_FRAC_FEE : 0;
       results.push({ stock, total, whole, frac, totalLots, hkscc, coRaw, coFee, fracFee, grand: hkscc + coFee + fracFee, mode: 'split', nCerts, extra, admin, coPerLot, certShares: stock.certShares });
     }
   }
