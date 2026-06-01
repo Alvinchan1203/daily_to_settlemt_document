@@ -48,6 +48,8 @@ async function run() {
       }
     }
 
+    const runStart = new Date();
+
     const BATCH = 500;
     for (let i = 0; i < stocks.length; i += BATCH) {
       const batch = stocks.slice(i, i + BATCH);
@@ -59,6 +61,9 @@ async function run() {
       );
     }
     console.log(`Updated ${stocks.length} stocks`);
+
+    const deleted = await pool.query('DELETE FROM lot_sizes WHERE updated_at < $1', [runStart]);
+    console.log(`Deleted ${deleted.rowCount} stale records`);
   } finally {
     await pool.end();
   }
