@@ -269,15 +269,17 @@ app.get('/api/lotsize/:code', async (req, res) => {
 
   if (pool) {
     try {
-      const result = await pool.query('SELECT name, lot FROM lot_sizes WHERE code = $1', [numCode]);
+      const result = await pool.query('SELECT name, lot, updated_at FROM lot_sizes WHERE code = $1', [numCode]);
       if (result.rows.length > 0) {
-        return res.json({ lotSize: result.rows[0].lot, stockName: result.rows[0].name, source: 'HKEX' });
+        const row = result.rows[0];
+        const updatedAt = row.updated_at ? row.updated_at.toISOString().split('T')[0] : null;
+        return res.json({ lotSize: row.lot, stockName: row.name, source: 'HKEX', updatedAt });
       }
     } catch (e) { /* 數據庫查詢失敗，回退至 JSON */ }
   }
 
   const entry = LOT_SIZE_DATA[numCode];
-  if (entry) return res.json({ lotSize: entry.lot, stockName: entry.name, source: 'HKEX' });
+  if (entry) return res.json({ lotSize: entry.lot, stockName: entry.name, source: 'HKEX', updatedAt: null });
   res.status(404).json({ error: '無法取得每手股數，請手動輸入' });
 });
 
