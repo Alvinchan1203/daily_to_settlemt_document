@@ -788,7 +788,7 @@ function calcBuildPlainSplit(total, lotSize, whole, frac, totalLots, nCerts, ext
   const lines = ['特別拆細提取收費明細', '='.repeat(38),
     `分拆總張數   : ${nCerts} 張`, `總提取股數   : ${total.toLocaleString()} 股`, '-'.repeat(38),
     `每手股數     : ${lotSize.toLocaleString()} 股`,
-    `整手數       : ${whole.toLocaleString()} 手`);
+    `整手數       : ${whole.toLocaleString()} 手`];
   if (frac > 0) lines.push(`碎股（作一手）: ${frac.toLocaleString()} 股`);
   lines.push(`HKSCC收費手數: ${totalLots.toLocaleString()} 手`, '-'.repeat(38),
     `中央結算費用 : ${totalLots}手 × $3.50 = HK$${hkscc.toFixed(2)}`, '-'.repeat(38),
