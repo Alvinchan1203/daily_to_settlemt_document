@@ -713,33 +713,38 @@ function calcRunAll() {
 
 function renderCalcResults(results) {
   const multi      = results.length > 1;
-  const grandTotal = results.reduce((s, r) => s + r.grand,  0);
-  const totalHkscc = results.reduce((s, r) => s + r.hkscc,  0);
-  const totalCo    = results.reduce((s, r) => s + r.coFee,  0);
+  const grandTotal = results.reduce((s, r) => s + r.grand, 0);
+  const totalHkscc = results.reduce((s, r) => s + r.hkscc, 0);
+  const totalCo    = results.reduce((s, r) => s + r.coFee, 0);
   let html = '';
   results.forEach((r, idx) => {
-    const label     = r.stock.code ? `${r.stock.code}${r.stock.name ? ` ${r.stock.name}` : ''}` : `股票 #${idx+1}`;
-    const modeLabel = r.mode === 'normal' ? '一般提取' : '特別拆細提取';
-    const coPerLot  = r.mode === 'split' ? r.coPerLot : r.coRaw;
-    const certDetailHtml = r.certShares ? `
-      <div class="calc-section-title">拆細明細
-        <button class="calc-detail-toggle" onclick="calcToggleCertDetail(this)">顯示明細</button>
-      </div>
-      <div style="display:none; margin-bottom:8px;">
-        <table class="calc-detail-table">
-          ${r.certShares.map((s, i) => `<tr><td>第 ${i+1} 張</td><td style="text-align:right;">${s.toLocaleString()} 股</td></tr>`).join('')}
-        </table>
-      </div>
-      <div class="calc-row"><span>分拆總張數</span><span>${r.nCerts} 張</span></div>
-      <div class="calc-row subtotal"><span>總提取股數</span><span>${r.total.toLocaleString()} 股</span></div>` : '';
+    const label    = r.stock.code ? `${r.stock.code}${r.stock.name ? ` ${r.stock.name}` : ''}` : `股票 #${idx+1}`;
+    const prefix   = multi ? `股票 ${idx+1}：${label} — ` : '';
+    const coPerLot = r.mode === 'split' ? r.coPerLot : r.coRaw;
+
+    if (r.mode === 'split' && r.certShares) {
+      const certRows = r.certShares.map((s, i) =>
+        `<tr><td>第 ${i+1} 張</td><td style="text-align:right;">${s.toLocaleString()} 股</td></tr>`
+      ).join('');
+      html += `<div class="calc-section">
+        <div class="calc-section-title">${prefix}拆細明細
+          <button class="calc-detail-toggle" onclick="calcToggleCertDetail(this)">顯示明細</button>
+        </div>
+        <div style="display:none; margin-bottom:8px;">
+          <table class="calc-detail-table">${certRows}</table>
+        </div>
+        <div class="calc-row"><span>分拆總張數</span><span>${r.nCerts} 張</span></div>
+        <div class="calc-row subtotal"><span>總提取股數</span><span>${r.total.toLocaleString()} 股</span></div>
+      </div>`;
+    }
+
     html += `<div class="calc-section">
-      <div class="calc-section-title">${multi ? `股票 ${idx+1}：` : ''}${label}（${modeLabel}）</div>
-      ${r.certShares ? certDetailHtml : `
-      <div class="calc-row"><span>提取股數</span><span>${r.total.toLocaleString()} 股</span></div>`}
+      <div class="calc-section-title">${r.mode === 'split' ? '股票明細' : `${prefix}股票明細`}</div>
+      ${r.mode === 'normal' ? `<div class="calc-row"><span>提取股數</span><span>${r.total.toLocaleString()} 股</span></div>` : ''}
       <div class="calc-row"><span>每手股數</span><span>${r.stock.lotSize.toLocaleString()} 股</span></div>
       <div class="calc-row"><span>整手數</span><span>${r.whole.toLocaleString()} 手</span></div>
       ${r.frac > 0 ? `<div class="calc-row"><span>碎股（作一手計）</span><span>${r.frac.toLocaleString()} 股</span></div>` : ''}
-      <div class="calc-row subtotal"><span>收費手數</span><span>${r.totalLots.toLocaleString()} 手</span></div>
+      <div class="calc-row subtotal"><span>HKSCC 收費手數</span><span>${r.totalLots.toLocaleString()} 手</span></div>
     </div>
     <div class="calc-section">
       <div class="calc-section-title">中央結算費用</div>
@@ -752,6 +757,7 @@ function renderCalcResults(results) {
       ${r.coFee > r.coRaw ? `<div class="calc-row adjusted"><span>↑ 適用最低收費 HK$500.00</span><span>HK$${r.coFee.toFixed(2)}</span></div>` : ''}
       <div class="calc-row subtotal"><span>富途證券手續費合計</span><span>HK$${r.coFee.toFixed(2)}</span></div>
     </div>`;
+
     if (multi) {
       html += `<div class="calc-total" style="font-size:14px;background:var(--bg2);color:var(--text1);"><span>小計（${label}）</span><span>HK$${r.grand.toFixed(2)}</span></div>`;
     }
