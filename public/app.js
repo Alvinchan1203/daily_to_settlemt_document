@@ -588,6 +588,8 @@ function calcGenCerts(id) {
   const old = stock.certShares || [];
   stock.certShares = Array.from({ length: n }, (_, i) => old[i] || null);
   renderCertFields(id);
+  const first = document.getElementById(`calcCertInput_${id}_0`);
+  if (first) first.focus();
 }
 
 function renderCertFields(id) {
