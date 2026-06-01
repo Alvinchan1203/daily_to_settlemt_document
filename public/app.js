@@ -460,11 +460,27 @@ function calcRemoveStock(id) {
 
 function renderCalcStocks() {
   const container = document.getElementById('calcStockList');
+  const wrap = document.querySelector('.calc-wrap');
   container.innerHTML = '';
+  const n = calcStocks.length;
+  const cols = Math.min(n, 3);
+  if (n > 1) {
+    wrap.style.maxWidth = cols === 2 ? '1040px' : '1560px';
+    container.style.display = 'grid';
+    container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    container.style.gap = '12px';
+    container.style.marginBottom = '12px';
+  } else {
+    wrap.style.maxWidth = '620px';
+    container.style.display = '';
+    container.style.gridTemplateColumns = '';
+    container.style.gap = '';
+    container.style.marginBottom = '';
+  }
   calcStocks.forEach((stock, idx) => {
     const div = document.createElement('div');
     div.className = 'card';
-    div.style.marginBottom = '12px';
+    div.style.marginBottom = n > 1 ? '0' : '12px';
     div.id = `calcStockCard_${stock.id}`;
     div.innerHTML = buildStockCardHTML(stock, idx);
     container.appendChild(div);
