@@ -470,8 +470,6 @@ async function fetchAllFeeRecords() {
   return data.data.items || [];
 }
 
-initApp();
-
 // ===== 收費計算器 =====
 let calcIsPublic = true;
 const CALC_HKSCC_PER_LOT = 3.50;
@@ -1049,6 +1047,7 @@ document.addEventListener('keydown', e => {
 });
 
 calcAddStock();
+initApp();
 
 document.getElementById('calcAccountInput').addEventListener('input', function () {
   const pos = this.selectionStart;
