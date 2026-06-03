@@ -207,6 +207,7 @@
         <div style="display:flex; gap:8px; margin-bottom:12px;">
           <button class="btn-primary" style="flex:1;" onclick="calcRunAll()">計算費用</button>
           <button class="btn-secondary" style="padding:9px 20px;" onclick="calcClearAll()">清除全部</button>
+          <button id="calcHelpBtn" class="btn-secondary" style="display:none; padding:9px 14px;" onclick="openFeeHelp()">收費說明</button>
         </div>
 
         <!-- 結果 -->
@@ -253,6 +254,102 @@
         onkeydown="if(event.key==='Enter')doLogin()">
       <button class="btn-primary" style="width:100%;margin-bottom:10px;" onclick="doLogin()">確認</button>
       <div id="loginError" style="color:#F5222D;font-size:13px;min-height:18px;"></div>
+    </div>
+  </div>
+
+  <!-- 收費說明 Modal -->
+  <div id="feeHelpOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)closeFeeHelp()">
+    <div style="background:#fff;border-radius:12px;width:100%;max-width:580px;max-height:88vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,0.2);position:relative;">
+      <div style="padding:18px 24px 14px;border-bottom:1px solid #E8E8E8;position:sticky;top:0;background:#fff;z-index:1;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:16px;font-weight:700;color:#1A1A1A;">提取實物股票收費說明</span>
+        <button onclick="closeFeeHelp()" style="background:none;border:none;font-size:20px;color:#9CA3AF;cursor:pointer;line-height:1;padding:0 4px;">✕</button>
+      </div>
+      <div style="padding:20px 24px;">
+
+        <div style="margin-bottom:20px;">
+          <div style="font-size:11px;font-weight:700;color:#1677FF;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.04em;">收費組成</div>
+          <div style="background:#F5F7FA;border-radius:8px;padding:14px 16px;margin-bottom:8px;">
+            <div style="font-weight:600;color:#1A1A1A;margin-bottom:4px;">① 中央結算費用（HKSCC）</div>
+            <div style="font-size:13px;color:#595959;">手數 × <strong>HK$3.50</strong></div>
+          </div>
+          <div style="background:#F5F7FA;border-radius:8px;padding:14px 16px;">
+            <div style="font-weight:600;color:#1A1A1A;margin-bottom:4px;">② 富途證券手續費</div>
+            <div style="font-size:13px;color:#595959;">手數 × <strong>HK$1.50</strong>，最低收費 <strong>HK$500</strong></div>
+            <div style="font-size:12px;color:#FA8C16;margin-top:6px;">⚠ 如提取股數含碎股，另加碎股附加費 HK$100</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:20px;">
+          <div style="font-size:11px;font-weight:700;color:#1677FF;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.04em;">手數與碎股</div>
+          <div style="background:#F5F7FA;border-radius:8px;padding:14px 16px;font-size:13px;color:#595959;line-height:1.9;">
+            每隻股票有固定的<strong>每手股數</strong>（可在本頁面查詢）。<br>
+            提取時，股數 ÷ 每手股數：<br>
+            • 能整除 → 全是<strong>整手</strong>，不收碎股附加費<br>
+            • 除不盡 → 餘數為<strong>碎股</strong>，碎股部分以<strong>1手</strong>計算收費，並收碎股附加費 HK$100<br><br>
+            <span style="color:#1A1A1A;">📌 例：每手 100 股，提取 <strong>350 股</strong><br>
+            → 整手 3 手（300 股）+ 碎股 50 股（作 1 手）<br>
+            → <strong>收費手數：4 手</strong></span>
+          </div>
+        </div>
+
+        <div style="margin-bottom:20px;">
+          <div style="font-size:11px;font-weight:700;color:#1677FF;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.04em;">特別拆細提取</div>
+          <div style="background:#F5F7FA;border-radius:8px;padding:14px 16px;font-size:13px;color:#595959;line-height:1.9;">
+            如需將持股分拆成多張實體股票證書：<br>
+            • 首 <strong>5 張</strong>：免收行政費<br>
+            • 第 <strong>6 張起</strong>：每張額外收 <strong>HK$100</strong> 行政費
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#1677FF;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.04em;">計算例子</div>
+
+          <div style="border:1px solid #E8E8E8;border-radius:8px;overflow:hidden;margin-bottom:10px;">
+            <div style="background:#EBF3FF;padding:10px 14px;font-size:13px;font-weight:600;color:#0958D9;">例 1：一般提取（整手，無碎股）</div>
+            <div style="padding:12px 14px;font-size:13px;color:#595959;line-height:2;">
+              提取騰訊 (700) <strong>1,000 股</strong>，每手 100 股<br>
+              收費手數：1,000 ÷ 100 = <strong>10 手</strong><br>
+              HKSCC：10 × $3.50 = <strong>HK$35.00</strong><br>
+              富途手續費：10 × $1.50 = $15.00 → <span style="color:#FA8C16;">適用最低收費</span> → <strong>HK$500.00</strong><br>
+              <span style="color:#1677FF;font-weight:700;">總費用：HK$535.00</span>
+            </div>
+          </div>
+
+          <div style="border:1px solid #E8E8E8;border-radius:8px;overflow:hidden;margin-bottom:10px;">
+            <div style="background:#EBF3FF;padding:10px 14px;font-size:13px;font-weight:600;color:#0958D9;">例 2：一般提取（有碎股）</div>
+            <div style="padding:12px 14px;font-size:13px;color:#595959;line-height:2;">
+              提取騰訊 (700) <strong>1,050 股</strong>，每手 100 股<br>
+              整手 10 手 + 碎股 50 股（作 1 手）→ 收費手數：<strong>11 手</strong><br>
+              HKSCC：11 × $3.50 = <strong>HK$38.50</strong><br>
+              富途手續費：11 × $1.50 = $16.50 + 碎股附加費 $100.00 = $116.50 → <span style="color:#FA8C16;">適用最低收費</span> → <strong>HK$500.00</strong><br>
+              <span style="color:#1677FF;font-weight:700;">總費用：HK$538.50</span>
+            </div>
+          </div>
+
+          <div style="border:1px solid #E8E8E8;border-radius:8px;overflow:hidden;margin-bottom:10px;">
+            <div style="background:#EBF3FF;padding:10px 14px;font-size:13px;font-weight:600;color:#0958D9;">例 3：特別拆細提取（8 張）</div>
+            <div style="padding:12px 14px;font-size:13px;color:#595959;line-height:2;">
+              提取某股票 <strong>800 股</strong>，每手 400 股，分拆 <strong>8 張</strong>，無碎股<br>
+              收費手數：800 ÷ 400 = <strong>2 手</strong><br>
+              HKSCC：2 × $3.50 = <strong>HK$7.00</strong><br>
+              富途手續費：2 × $1.50 = $3.00 + 行政費（第 6–8 張，共 3 張）× $100 = $303.00 → <span style="color:#FA8C16;">適用最低收費</span> → <strong>HK$500.00</strong><br>
+              <span style="color:#1677FF;font-weight:700;">總費用：HK$507.00</span>
+            </div>
+          </div>
+
+          <div style="border:1px solid #E8E8E8;border-radius:8px;overflow:hidden;">
+            <div style="background:#EBF3FF;padding:10px 14px;font-size:13px;font-weight:600;color:#0958D9;">例 4：手數較多，超過最低收費</div>
+            <div style="padding:12px 14px;font-size:13px;color:#595959;line-height:2;">
+              提取某股票 <strong>40,000 股</strong>，每手 100 股，無碎股<br>
+              收費手數：40,000 ÷ 100 = <strong>400 手</strong><br>
+              HKSCC：400 × $3.50 = <strong>HK$1,400.00</strong><br>
+              富途手續費：400 × $1.50 = <strong>HK$600.00</strong>（已超過最低收費 $500）<br>
+              <span style="color:#1677FF;font-weight:700;">總費用：HK$2,000.00</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
   </div>
 

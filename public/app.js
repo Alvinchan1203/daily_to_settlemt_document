@@ -96,6 +96,8 @@ function switchTab(tab) {
   if (tab === 'calc' || tab === 'calc-public') {
     renderCalcStocks();
   }
+  const helpBtn = document.getElementById('calcHelpBtn');
+  if (helpBtn) helpBtn.style.display = calcIsPublic ? '' : 'none';
   if (tab === 'stats') loadStats();
 }
 
@@ -673,6 +675,14 @@ function calcUpdateField(id, field, value) {
 function calcSetStockMode(id, mode) {
   const stock = calcStocks.find(s => s.id === id);
   if (stock) { stock.mode = mode; renderCalcStocks(); }
+}
+
+function openFeeHelp() {
+  document.getElementById('feeHelpOverlay').style.display = 'flex';
+}
+
+function closeFeeHelp() {
+  document.getElementById('feeHelpOverlay').style.display = 'none';
 }
 
 async function triggerLotsizeUpdate(btn) {
