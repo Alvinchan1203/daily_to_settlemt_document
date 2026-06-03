@@ -93,6 +93,9 @@ function switchTab(tab) {
   if (calcResults) {
     document.getElementById('calcConfirmCard').style.display = calcIsPublic ? 'none' : '';
   }
+  if (tab === 'calc' || tab === 'calc-public') {
+    renderCalcStocks();
+  }
   if (tab === 'stats') loadStats();
 }
 
