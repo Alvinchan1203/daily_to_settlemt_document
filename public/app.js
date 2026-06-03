@@ -60,7 +60,8 @@ async function initApp() {
     sessionStorage.removeItem('appPassword');
     appPassword = '';
   }
-  // No stored password — stay on public calc tab (no login required)
+  // No stored password — initialize on public calc tab
+  switchTab('calc-public');
 }
 
 const FIELDS = [
