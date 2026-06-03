@@ -586,7 +586,9 @@ function buildStockCardHTML(stock, idx) {
               oninput="calcUpdateField(${stock.id},'code',this.value)"
               onkeydown="if(event.key==='Enter'){event.stopPropagation();calcLookupForStock(${stock.id});}" />
             <button class="btn-secondary" id="calcLookupBtn_${stock.id}" onclick="calcLookupForStock(${stock.id})">查詢每手</button>
+            ${!calcIsPublic && idx === 0 ? `<button class="btn-secondary" id="updateLotsizeBtn" style="font-size:12px;" onclick="triggerLotsizeUpdate(this)">更新每手數據</button>` : ''}
           </div>
+          ${!calcIsPublic && idx === 0 ? `<div id="updateLotsizeMsg" style="margin-top:4px;font-size:12px;"></div>` : ''}
           <div id="calcLookupStatus_${stock.id}" style="margin-top:4px;font-size:12px;">${statusHtml}</div>
         </div>
         <div>
@@ -668,6 +670,26 @@ function calcUpdateField(id, field, value) {
 function calcSetStockMode(id, mode) {
   const stock = calcStocks.find(s => s.id === id);
   if (stock) { stock.mode = mode; renderCalcStocks(); }
+}
+
+async function triggerLotsizeUpdate(btn) {
+  const msg = document.getElementById('updateLotsizeMsg');
+  const orig = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '更新中…';
+  if (msg) { msg.textContent = ''; }
+  try {
+    const res = await fetch('/api/trigger-lotsize-update', { method: 'POST' });
+    const data = await res.json();
+    if (data.code !== 0) throw new Error(data.msg);
+    btn.textContent = '✓ 已觸發';
+    if (msg) { msg.textContent = '已觸發 GitHub 更新，約1分鐘後數據刷新'; msg.style.color = 'var(--green)'; }
+    setTimeout(() => { btn.textContent = orig; btn.disabled = false; if (msg) msg.textContent = ''; }, 8000);
+  } catch (e) {
+    btn.textContent = orig;
+    btn.disabled = false;
+    if (msg) { msg.textContent = '✗ ' + e.message; msg.style.color = 'var(--red)'; }
+  }
 }
 
 async function calcLookupForStock(id) {

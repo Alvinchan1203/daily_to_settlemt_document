@@ -291,6 +291,21 @@ app.get('/api/debug-lotsize', (req, res) => {
   });
 });
 
+app.post('/api/trigger-lotsize-update', async (req, res) => {
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) return res.status(500).json({ code: -1, msg: 'GITHUB_TOKEN 未設定，請在 Vercel 環境變數加入' });
+  try {
+    await axios.post(
+      'https://api.github.com/repos/Alvinchan1203/daily_to_settlemt_document/actions/workflows/update-lotsize.yml/dispatches',
+      { ref: 'main' },
+      { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' } }
+    );
+    res.json({ code: 0, msg: '已觸發更新，約1分鐘後完成' });
+  } catch (e) {
+    res.status(500).json({ code: -1, msg: e.response?.data?.message || e.message });
+  }
+});
+
 module.exports = app;
 
 // 本地開發直接執行時才啟動監聽
