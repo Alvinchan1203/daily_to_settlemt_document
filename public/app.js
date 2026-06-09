@@ -69,8 +69,11 @@ const FIELDS = [
   '提實貨',
   '提實貨簽收',
   '結單/賬戶證明扣款/審計',
-  '銷戶未夠180日收費'
+  '銷戶未夠180日收費',
+  '銷A'
 ];
+
+const REPORT_FIELDS = FIELDS.filter(f => f !== '銷A');
 
 let allRecords = [];
 let currentFilter = 'today';
@@ -421,7 +424,7 @@ function generateReport(records) {
   const lines = [dateStr, '*SETTLEMENT'];
   const sections = [];
 
-  FIELDS.forEach(field => {
+  REPORT_FIELDS.forEach(field => {
     const fieldRecords = records.filter(r => r.fields['業務類型'] === field);
     const count = fieldRecords.length;
     const countMap = {};
