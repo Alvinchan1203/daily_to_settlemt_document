@@ -808,7 +808,7 @@ function renderCalcResults(results) {
   const grandTotal = results.reduce((s, r) => s + r.grand, 0);
   const totalHkscc = results.reduce((s, r) => s + r.hkscc, 0);
   const totalCo    = results.reduce((s, r) => s + r.coFee, 0);
-  let html = '';
+  let html = `<div class="calc-total" style="margin-bottom:8px;"><span>總費用</span><span>HK$${grandTotal.toFixed(2)}</span></div>`;
   results.forEach((r, idx) => {
     const label    = r.stock.code ? `${r.stock.code}${r.stock.name ? ` ${r.stock.name}` : ''}` : `股票 #${idx+1}`;
     const prefix   = multi ? `股票 ${idx+1}：${label} — ` : '';
@@ -862,7 +862,6 @@ function renderCalcResults(results) {
       <div class="calc-row"><span>富途證券手續費合計</span><span>HK$${totalCo.toFixed(2)}</span></div>
     </div>`;
   }
-  html += `<div class="calc-total"><span>總費用</span><span>HK$${grandTotal.toFixed(2)}</span></div>`;
   document.getElementById('calcResultsContent').innerHTML = html;
   const card = document.getElementById('calcResultsCard');
   card.style.display = '';
