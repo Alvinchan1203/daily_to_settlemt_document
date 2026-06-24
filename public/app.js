@@ -503,12 +503,17 @@ function renderCalcStocks() {
   container.innerHTML = '';
   const n = calcStocks.length;
   const cols = Math.min(n, 3);
+  const outer = document.querySelector('.calc-outer');
   if (n > 1) {
+    wrap.style.maxWidth = '';
+    outer.style.justifyContent = '';
     container.style.display = 'grid';
     container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
     container.style.gap = '12px';
     container.style.marginBottom = '12px';
   } else {
+    wrap.style.maxWidth = '580px';
+    outer.style.justifyContent = 'center';
     container.style.display = '';
     container.style.gridTemplateColumns = '';
     container.style.gap = '';
