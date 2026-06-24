@@ -504,16 +504,22 @@ function renderCalcStocks() {
   const n = calcStocks.length;
   const cols = Math.min(n, 3);
   const outer = document.querySelector('.calc-outer');
-  if (n > 1) {
+  if (n >= 3) {
     wrap.style.maxWidth = '';
     outer.style.justifyContent = '';
+  } else if (n === 2) {
+    wrap.style.maxWidth = '1160px';
+    outer.style.justifyContent = 'center';
+  } else {
+    wrap.style.maxWidth = '580px';
+    outer.style.justifyContent = 'center';
+  }
+  if (n > 1) {
     container.style.display = 'grid';
     container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
     container.style.gap = '12px';
     container.style.marginBottom = '12px';
   } else {
-    wrap.style.maxWidth = '580px';
-    outer.style.justifyContent = 'center';
     container.style.display = '';
     container.style.gridTemplateColumns = '';
     container.style.gap = '';
