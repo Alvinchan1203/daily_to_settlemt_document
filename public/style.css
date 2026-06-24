@@ -432,11 +432,12 @@ textarea.form-input {
   display: flex;
   gap: 20px;
   align-items: flex-start;
+  justify-content: center;
 }
 
 .calc-wrap {
-  flex: 1;
-  min-width: 0;
+  width: 580px;
+  flex-shrink: 0;
 }
 
 .calc-results-panel {

@@ -499,21 +499,22 @@ function calcRemoveStock(id) {
 
 function renderCalcStocks() {
   const container = document.getElementById('calcStockList');
+  const wrap = document.querySelector('.calc-wrap');
   container.innerHTML = '';
   const n = calcStocks.length;
   const cols = Math.min(n, 3);
   if (n > 1) {
+    wrap.style.width = cols === 2 ? '960px' : '1000px';
     container.style.display = 'grid';
     container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
     container.style.gap = '12px';
     container.style.marginBottom = '12px';
-    container.style.maxWidth = '';
   } else {
+    wrap.style.width = '';
     container.style.display = '';
     container.style.gridTemplateColumns = '';
     container.style.gap = '';
     container.style.marginBottom = '';
-    container.style.maxWidth = '580px';
   }
   calcStocks.forEach((stock, idx) => {
     const div = document.createElement('div');
@@ -865,6 +866,7 @@ function renderCalcResults(results) {
   document.getElementById('calcResultsContent').innerHTML = html;
   const card = document.getElementById('calcResultsCard');
   card.style.display = '';
+  document.querySelector('.calc-results-panel').style.display = '';
   document.getElementById('calcConfirmCard').style.display = calcIsPublic ? 'none' : '';
   document.getElementById('calcConfirmDate').value = todayStr;
   document.getElementById('calcAccountInput').value = '';
@@ -950,6 +952,7 @@ function calcClearAll() {
   calcAddStock();
   document.getElementById('calcResultsCard').style.display  = 'none';
   document.getElementById('calcConfirmCard').style.display  = 'none';
+  document.querySelector('.calc-results-panel').style.display = 'none';
 }
 
 function calcBuildPlainNormal(total, lotSize, whole, frac, totalLots, hkscc, coBase, coRaw, coFee, fracFee, grand) {
