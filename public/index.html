@@ -194,48 +194,55 @@
 
     <!-- ===== 收費計算頁面（私用版 + 公用版共用） ===== -->
     <div id="tab-calc">
-      <div class="calc-wrap">
+      <div class="calc-outer">
 
-        <!-- 股票列表（動態生成）-->
-        <div id="calcStockList"></div>
+        <!-- 左欄：輸入區 -->
+        <div class="calc-wrap">
 
-        <!-- 新增股票 -->
-        <div style="margin-bottom:12px;">
-          <button class="btn-secondary" onclick="calcAddStock()">+ 新增股票</button>
-        </div>
+          <!-- 股票列表（動態生成）-->
+          <div id="calcStockList"></div>
 
-        <!-- 按鈕 -->
-        <div style="display:flex; gap:8px; margin-bottom:12px;">
-          <button class="btn-primary" style="flex:1;" onclick="calcRunAll()">計算費用</button>
-          <button class="btn-secondary" style="padding:9px 20px;" onclick="calcClearAll()">清除全部</button>
-          <button id="calcHelpBtn" class="btn-secondary" style="display:none; padding:9px 14px;" onclick="openFeeHelp()">收費說明</button>
-        </div>
-
-        <!-- 結果 -->
-        <div class="card" id="calcResultsCard" style="display:none;">
-          <div class="card-header">
-            <span>費用計算結果</span>
-            <button class="btn-secondary" onclick="calcCopyResults()">複製結果</button>
+          <!-- 新增股票 -->
+          <div style="margin-bottom:12px;">
+            <button class="btn-secondary" onclick="calcAddStock()">+ 新增股票</button>
           </div>
-          <div class="card-body" id="calcResultsContent"></div>
+
+          <!-- 按鈕 -->
+          <div style="display:flex; gap:8px; margin-bottom:12px;">
+            <button class="btn-primary" style="flex:1;" onclick="calcRunAll()">計算費用</button>
+            <button class="btn-secondary" style="padding:9px 20px;" onclick="calcClearAll()">清除全部</button>
+            <button id="calcHelpBtn" class="btn-secondary" style="display:none; padding:9px 14px;" onclick="openFeeHelp()">收費說明</button>
+          </div>
+
+          <!-- 確認申請 -->
+          <div class="card" id="calcConfirmCard" style="display:none; margin-top:12px;">
+            <div class="card-header">確認申請</div>
+            <div class="card-body">
+              <div style="display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap;">
+                <div>
+                  <label class="form-label">日期</label>
+                  <input id="calcConfirmDate" type="date" class="form-input" style="width:160px;" />
+                </div>
+                <div>
+                  <label class="form-label">牛牛號</label>
+                  <input id="calcAccountInput" type="text" class="form-input" style="width:160px;" placeholder="請輸入牛牛號" inputmode="numeric" />
+                </div>
+                <button class="btn-primary" onclick="calcConfirmApply()">確認申請</button>
+                <span id="calcConfirmMsg" style="font-size:13px;"></span>
+              </div>
+            </div>
+          </div>
+
         </div>
 
-        <!-- 確認申請 -->
-        <div class="card" id="calcConfirmCard" style="display:none; margin-top:12px;">
-          <div class="card-header">確認申請</div>
-          <div class="card-body">
-            <div style="display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap;">
-              <div>
-                <label class="form-label">日期</label>
-                <input id="calcConfirmDate" type="date" class="form-input" style="width:160px;" />
-              </div>
-              <div>
-                <label class="form-label">牛牛號</label>
-                <input id="calcAccountInput" type="text" class="form-input" style="width:160px;" placeholder="請輸入牛牛號" inputmode="numeric" />
-              </div>
-              <button class="btn-primary" onclick="calcConfirmApply()">確認申請</button>
-              <span id="calcConfirmMsg" style="font-size:13px;"></span>
+        <!-- 右欄：費用計算結果 -->
+        <div class="calc-results-panel">
+          <div class="card" id="calcResultsCard" style="display:none;">
+            <div class="card-header">
+              <span>費用計算結果</span>
+              <button class="btn-secondary" onclick="calcCopyResults()">複製結果</button>
             </div>
+            <div class="card-body" id="calcResultsContent"></div>
           </div>
         </div>
 

@@ -428,9 +428,22 @@ textarea.form-input {
 #submitMsg { font-size: 13px; }
 
 /* ===== 收費計算器 ===== */
+.calc-outer {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
 .calc-wrap {
-  max-width: 620px;
-  margin: 0 auto;
+  flex: 1;
+  min-width: 0;
+}
+
+.calc-results-panel {
+  width: 360px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 112px;
 }
 
 .calc-mode-toggle {

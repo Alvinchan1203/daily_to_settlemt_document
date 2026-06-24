@@ -499,22 +499,21 @@ function calcRemoveStock(id) {
 
 function renderCalcStocks() {
   const container = document.getElementById('calcStockList');
-  const wrap = document.querySelector('.calc-wrap');
   container.innerHTML = '';
   const n = calcStocks.length;
   const cols = Math.min(n, 3);
   if (n > 1) {
-    wrap.style.maxWidth = cols === 2 ? '1040px' : '1560px';
     container.style.display = 'grid';
     container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
     container.style.gap = '12px';
     container.style.marginBottom = '12px';
+    container.style.maxWidth = '';
   } else {
-    wrap.style.maxWidth = '620px';
     container.style.display = '';
     container.style.gridTemplateColumns = '';
     container.style.gap = '';
     container.style.marginBottom = '';
+    container.style.maxWidth = '580px';
   }
   calcStocks.forEach((stock, idx) => {
     const div = document.createElement('div');
