@@ -504,13 +504,11 @@ function renderCalcStocks() {
   const n = calcStocks.length;
   const cols = Math.min(n, 3);
   if (n > 1) {
-    wrap.style.width = cols === 2 ? '960px' : '1000px';
     container.style.display = 'grid';
     container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
     container.style.gap = '12px';
     container.style.marginBottom = '12px';
   } else {
-    wrap.style.width = '';
     container.style.display = '';
     container.style.gridTemplateColumns = '';
     container.style.gap = '';
