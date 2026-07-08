@@ -522,23 +522,35 @@ function renderCalcStocks() {
   wrap.style.maxWidth = '';
   document.querySelector('.calc-outer').style.justifyContent = '';
   container.innerHTML = '';
-  container.style.cssText = 'display:flex; flex-direction:column; gap:12px; margin-bottom:12px;';
-  calcStocks.forEach((stock, idx) => {
+  container.style.cssText = 'display:flex; flex-direction:column; gap:16px; margin-bottom:12px;';
+
+  for (let i = 0; i < calcStocks.length; i += 2) {
     const row = document.createElement('div');
-    row.style.cssText = 'display:flex; gap:12px; align-items:flex-start;';
-    const stockDiv = document.createElement('div');
-    stockDiv.className = 'card';
-    stockDiv.id = `calcStockCard_${stock.id}`;
-    stockDiv.style.cssText = 'flex:0 0 500px; min-width:0;';
-    stockDiv.innerHTML = buildStockCardHTML(stock, idx);
-    const feeDiv = document.createElement('div');
-    feeDiv.id = `calcFeeInline_${stock.id}`;
-    feeDiv.className = 'card';
-    feeDiv.style.cssText = 'flex:1; min-width:200px; display:none;';
-    row.appendChild(stockDiv);
-    row.appendChild(feeDiv);
+    row.style.cssText = 'display:flex; gap:16px; align-items:flex-start;';
+
+    for (let j = i; j < Math.min(i + 2, calcStocks.length); j++) {
+      const stock = calcStocks[j];
+      const group = document.createElement('div');
+      group.style.cssText = 'flex:1; min-width:0; display:flex; gap:10px; align-items:flex-start;';
+
+      const stockDiv = document.createElement('div');
+      stockDiv.className = 'card';
+      stockDiv.id = `calcStockCard_${stock.id}`;
+      stockDiv.style.cssText = 'flex:0 0 350px; min-width:0;';
+      stockDiv.innerHTML = buildStockCardHTML(stock, j);
+
+      const feeDiv = document.createElement('div');
+      feeDiv.id = `calcFeeInline_${stock.id}`;
+      feeDiv.className = 'card';
+      feeDiv.style.cssText = 'flex:1; min-width:200px; display:none;';
+
+      group.appendChild(stockDiv);
+      group.appendChild(feeDiv);
+      row.appendChild(group);
+    }
+
     container.appendChild(row);
-  });
+  }
 }
 
 function buildStockCardHTML(stock, idx) {
