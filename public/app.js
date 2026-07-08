@@ -498,15 +498,22 @@ function calcRemoveStock(id) {
 }
 
 async function calcBatchAddByCode(codesStr) {
-  const codes = codesStr.split(/[\s,，]+/).map(c => c.trim()).filter(c => /^\d+$/.test(c));
-  if (codes.length === 0) { alert('請輸入有效股票代號（純數字），以空格或逗號分隔'); return; }
-  calcStocks = codes.map((code, i) => ({
-    id: Date.now() + i, code, name: '', lotSize: null, mode: 'normal', shares: null, nCerts: null, certShares: [], dataDate: undefined
+  const tokens = codesStr.trim().split(/[\s,，]+/).map(t => t.trim()).filter(Boolean);
+  const entries = tokens.map(t => {
+    const [code, sharesStr] = t.split(/[:：]/);
+    const shares = sharesStr ? parseInt(sharesStr) : null;
+    return /^\d+$/.test(code) ? { code, shares: (shares && shares > 0) ? shares : null } : null;
+  }).filter(Boolean);
+  if (entries.length === 0) { alert('請輸入有效股票代號，格式：700:1000 3988:2000\n或只輸入代號：700 3988'); return; }
+  calcStocks = entries.map(({ code, shares }, i) => ({
+    id: Date.now() + i, code, name: '', lotSize: null, mode: 'normal', shares, nCerts: null, certShares: [], dataDate: undefined
   }));
   renderCalcStocks();
   const inputEl = document.getElementById('calcQuickCodes');
   if (inputEl) inputEl.value = '';
   await Promise.all(calcStocks.map(s => calcLookupForStock(s.id)));
+  const allHaveShares = calcStocks.every(s => s.shares && s.shares > 0);
+  if (allHaveShares) calcRunAll();
 }
 
 function renderCalcStocks() {
