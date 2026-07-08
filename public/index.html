@@ -201,6 +201,11 @@
           onkeydown="if(event.key==='Enter'){event.stopPropagation();calcBatchAddByCode(this.value);}" />
         <button class="btn-primary" style="white-space:nowrap;" onclick="calcBatchAddByCode(document.getElementById('calcQuickCodes').value)">新增並查詢</button>
       </div>
+      <!-- 頂部總費用列 -->
+      <div id="calcTotalBar" style="display:none; background:#1677FF; color:#fff; border-radius:8px; padding:10px 20px; margin-bottom:14px; font-size:16px; font-weight:700; justify-content:space-between; align-items:center;">
+        <span>總費用</span>
+        <span id="calcTotalBarAmount"></span>
+      </div>
       <div class="calc-outer">
 
         <!-- 左欄：輸入區 -->
