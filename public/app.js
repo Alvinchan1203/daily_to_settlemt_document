@@ -542,7 +542,7 @@ function renderCalcStocks() {
       const feeDiv = document.createElement('div');
       feeDiv.id = `calcFeeInline_${stock.id}`;
       feeDiv.className = 'card';
-      feeDiv.style.cssText = 'flex:1; min-width:200px; display:none;';
+      feeDiv.style.cssText = 'flex:1; min-width:200px; max-width:520px; display:none;';
 
       group.appendChild(stockDiv);
       group.appendChild(feeDiv);
