@@ -882,25 +882,49 @@ function calcRunAll() {
 
 function buildInlineFeeHtml(r) {
   const coPerLot = r.mode === 'split' ? r.coPerLot : r.coBase;
+  const label = r.stock.code ? `${r.stock.code}${r.stock.name ? ` ${r.stock.name}` : ''}` : '';
   let body = '';
-  if (r.mode === 'normal') {
-    body += `<div class="calc-row"><span>提取股數</span><span>${r.total.toLocaleString()} 股</span></div>
-             <div class="calc-row"><span>整手數</span><span>${r.whole.toLocaleString()} 手</span></div>
-             ${r.frac > 0 ? `<div class="calc-row"><span>碎股</span><span>${r.frac.toLocaleString()} 股</span></div>` : ''}`;
-  } else {
-    body += `<div class="calc-row"><span>總提取股數</span><span>${r.total.toLocaleString()} 股</span></div>
-             <div class="calc-row"><span>分拆張數</span><span>${r.nCerts} 張</span></div>`;
+
+  if (r.mode === 'split' && r.certShares) {
+    const certRows = r.certShares.map((s, i) =>
+      `<tr><td>第 ${i+1} 張</td><td style="text-align:right;">${s.toLocaleString()} 股</td></tr>`
+    ).join('');
+    body += `<div class="calc-section">
+      <div class="calc-section-title">拆細明細
+        <button class="calc-detail-toggle" onclick="calcToggleCertDetail(this)">顯示明細</button>
+      </div>
+      <div style="display:none; margin-bottom:8px;"><table class="calc-detail-table">${certRows}</table></div>
+      <div class="calc-row"><span>分拆總張數</span><span>${r.nCerts} 張</span></div>
+      <div class="calc-row subtotal"><span>總提取股數</span><span>${r.total.toLocaleString()} 股</span></div>
+    </div>`;
   }
-  body += `<div style="border-top:1px solid var(--border);margin:6px 0;"></div>
-           <div class="calc-row"><span>HKSCC</span><span>HK$${r.hkscc.toFixed(2)}</span></div>
-           <div class="calc-row"><span>富途手續費</span><span>HK$${r.coFee.toFixed(2)}</span></div>
-           ${r.coFee > r.coRaw ? `<div class="calc-row adjusted" style="font-size:11px;"><span>已適用最低收費 HK$500</span></div>` : ''}
-           ${r.mode === 'split' && r.admin > 0 ? `<div class="calc-row"><span>拆細行政費</span><span>HK$${r.admin.toFixed(2)}</span></div>` : ''}
-           ${r.fracFee > 0 ? `<div class="calc-row"><span>碎股附加費</span><span>HK$100.00</span></div>` : ''}`;
-  return `<div class="card-header" style="background:var(--blue);color:#fff;border-radius:8px 8px 0 0;">
-            <span>費用小計</span><span>HK$${r.grand.toFixed(2)}</span>
-          </div>
-          <div class="card-body" style="font-size:13px;">${body}</div>`;
+
+  body += `<div class="calc-section">
+    <div class="calc-section-title">股票明細</div>
+    ${r.mode === 'normal' ? `<div class="calc-row"><span>提取股數</span><span>${r.total.toLocaleString()} 股</span></div>` : ''}
+    <div class="calc-row"><span>每手股數</span><span>${r.stock.lotSize.toLocaleString()} 股</span></div>
+    <div class="calc-row"><span>整手數</span><span>${r.whole.toLocaleString()} 手</span></div>
+    ${r.frac > 0 ? `<div class="calc-row"><span>碎股（作一手計）</span><span>${r.frac.toLocaleString()} 股</span></div>` : ''}
+    <div class="calc-row subtotal"><span>HKSCC 收費手數</span><span>${r.totalLots.toLocaleString()} 手</span></div>
+  </div>
+  <div class="calc-section">
+    <div class="calc-section-title">中央結算費用</div>
+    <div class="calc-row"><span>${r.totalLots} 手 × HK$3.50</span><span>HK$${r.hkscc.toFixed(2)}</span></div>
+  </div>
+  <div class="calc-section">
+    <div class="calc-section-title">富途證券手續費</div>
+    <div class="calc-row"><span>每手費 ${r.totalLots} 手 × HK$1.50</span><span>HK$${coPerLot.toFixed(2)}</span></div>
+    ${r.mode === 'split' && r.extra > 0 ? `<div class="calc-row"><span>拆細行政費 第6-${r.nCerts}張 × HK$100（共${r.extra}張）</span><span>HK$${r.admin.toFixed(2)}</span></div>` : ''}
+    ${r.fracFee > 0 ? `<div class="calc-row"><span>碎股附加費</span><span>HK$100.00</span></div>` : ''}
+    ${r.coFee > r.coRaw ? `<div class="calc-row adjusted"><span>↑ 適用最低收費 HK$500.00</span><span>HK$${r.coFee.toFixed(2)}</span></div>` : ''}
+    <div class="calc-row subtotal"><span>富途證券手續費合計</span><span>HK$${r.coFee.toFixed(2)}</span></div>
+  </div>
+  <div class="calc-total" style="font-size:14px;background:var(--bg2);color:var(--text1);">
+    <span>小計${label ? `（${label}）` : ''}</span><span>HK$${r.grand.toFixed(2)}</span>
+  </div>`;
+
+  return `<div class="card-header"><span>費用明細</span></div>
+          <div class="card-body">${body}</div>`;
 }
 
 function renderCalcResults(results) {
