@@ -519,35 +519,25 @@ async function calcBatchAddByCode(codesStr) {
 function renderCalcStocks() {
   const container = document.getElementById('calcStockList');
   const wrap = document.querySelector('.calc-wrap');
+  wrap.style.maxWidth = '';
+  document.querySelector('.calc-outer').style.justifyContent = '';
   container.innerHTML = '';
-  const n = calcStocks.length;
-  const cols = Math.min(n, 2);
-  const outer = document.querySelector('.calc-outer');
-  if (n >= 2) {
-    wrap.style.maxWidth = '1160px';
-    outer.style.justifyContent = 'center';
-  } else {
-    wrap.style.maxWidth = '580px';
-    outer.style.justifyContent = 'center';
-  }
-  if (n > 1) {
-    container.style.display = 'grid';
-    container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-    container.style.gap = '12px';
-    container.style.marginBottom = '12px';
-  } else {
-    container.style.display = '';
-    container.style.gridTemplateColumns = '';
-    container.style.gap = '';
-    container.style.marginBottom = '';
-  }
+  container.style.cssText = 'display:flex; flex-direction:column; gap:12px; margin-bottom:12px;';
   calcStocks.forEach((stock, idx) => {
-    const div = document.createElement('div');
-    div.className = 'card';
-    div.style.marginBottom = n > 1 ? '0' : '12px';
-    div.id = `calcStockCard_${stock.id}`;
-    div.innerHTML = buildStockCardHTML(stock, idx);
-    container.appendChild(div);
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex; gap:12px; align-items:flex-start;';
+    const stockDiv = document.createElement('div');
+    stockDiv.className = 'card';
+    stockDiv.id = `calcStockCard_${stock.id}`;
+    stockDiv.style.cssText = 'flex:0 0 500px; min-width:0;';
+    stockDiv.innerHTML = buildStockCardHTML(stock, idx);
+    const feeDiv = document.createElement('div');
+    feeDiv.id = `calcFeeInline_${stock.id}`;
+    feeDiv.className = 'card';
+    feeDiv.style.cssText = 'flex:1; min-width:200px; display:none;';
+    row.appendChild(stockDiv);
+    row.appendChild(feeDiv);
+    container.appendChild(row);
   });
 }
 
@@ -890,74 +880,46 @@ function calcRunAll() {
   renderCalcResults(results);
 }
 
+function buildInlineFeeHtml(r) {
+  const coPerLot = r.mode === 'split' ? r.coPerLot : r.coBase;
+  let body = '';
+  if (r.mode === 'normal') {
+    body += `<div class="calc-row"><span>提取股數</span><span>${r.total.toLocaleString()} 股</span></div>
+             <div class="calc-row"><span>整手數</span><span>${r.whole.toLocaleString()} 手</span></div>
+             ${r.frac > 0 ? `<div class="calc-row"><span>碎股</span><span>${r.frac.toLocaleString()} 股</span></div>` : ''}`;
+  } else {
+    body += `<div class="calc-row"><span>總提取股數</span><span>${r.total.toLocaleString()} 股</span></div>
+             <div class="calc-row"><span>分拆張數</span><span>${r.nCerts} 張</span></div>`;
+  }
+  body += `<div style="border-top:1px solid var(--border);margin:6px 0;"></div>
+           <div class="calc-row"><span>HKSCC</span><span>HK$${r.hkscc.toFixed(2)}</span></div>
+           <div class="calc-row"><span>富途手續費</span><span>HK$${r.coFee.toFixed(2)}</span></div>
+           ${r.coFee > r.coRaw ? `<div class="calc-row adjusted" style="font-size:11px;"><span>已適用最低收費 HK$500</span></div>` : ''}
+           ${r.mode === 'split' && r.admin > 0 ? `<div class="calc-row"><span>拆細行政費</span><span>HK$${r.admin.toFixed(2)}</span></div>` : ''}
+           ${r.fracFee > 0 ? `<div class="calc-row"><span>碎股附加費</span><span>HK$100.00</span></div>` : ''}`;
+  return `<div class="card-header" style="background:var(--blue);color:#fff;border-radius:8px 8px 0 0;">
+            <span>費用小計</span><span>HK$${r.grand.toFixed(2)}</span>
+          </div>
+          <div class="card-body" style="font-size:13px;">${body}</div>`;
+}
+
 function renderCalcResults(results) {
-  const multi      = results.length > 1;
   const grandTotal = results.reduce((s, r) => s + r.grand, 0);
-  const totalHkscc = results.reduce((s, r) => s + r.hkscc, 0);
-  const totalCo    = results.reduce((s, r) => s + r.coFee, 0);
-  let html = `<div class="calc-total" style="margin-bottom:8px;"><span>總費用</span><span>HK$${grandTotal.toFixed(2)}</span></div>`;
-  results.forEach((r, idx) => {
-    const label    = r.stock.code ? `${r.stock.code}${r.stock.name ? ` ${r.stock.name}` : ''}` : `股票 #${idx+1}`;
-    const prefix   = multi ? `股票 ${idx+1}：${label} — ` : '';
-    const coPerLot = r.mode === 'split' ? r.coPerLot : r.coBase;
 
-    if (r.mode === 'split' && r.certShares) {
-      const certRows = r.certShares.map((s, i) =>
-        `<tr><td>第 ${i+1} 張</td><td style="text-align:right;">${s.toLocaleString()} 股</td></tr>`
-      ).join('');
-      html += `<div class="calc-section">
-        <div class="calc-section-title">${prefix}拆細明細
-          <button class="calc-detail-toggle" onclick="calcToggleCertDetail(this)">顯示明細</button>
-        </div>
-        <div style="display:none; margin-bottom:8px;">
-          <table class="calc-detail-table">${certRows}</table>
-        </div>
-        <div class="calc-row"><span>分拆總張數</span><span>${r.nCerts} 張</span></div>
-        <div class="calc-row subtotal"><span>總提取股數</span><span>${r.total.toLocaleString()} 股</span></div>
-      </div>`;
-    }
+  // 頂部總費用列
+  document.getElementById('calcTotalBarAmount').textContent = `HK$${grandTotal.toFixed(2)}`;
+  document.getElementById('calcTotalBar').style.display = 'flex';
+  document.getElementById('calcCopyBarBtn').style.display = '';
 
-    html += `<div class="calc-section">
-      <div class="calc-section-title">${r.mode === 'split' ? '股票明細' : `${prefix}股票明細`}</div>
-      ${r.mode === 'normal' ? `<div class="calc-row"><span>提取股數</span><span>${r.total.toLocaleString()} 股</span></div>` : ''}
-      <div class="calc-row"><span>每手股數</span><span>${r.stock.lotSize.toLocaleString()} 股</span></div>
-      <div class="calc-row"><span>整手數</span><span>${r.whole.toLocaleString()} 手</span></div>
-      ${r.frac > 0 ? `<div class="calc-row"><span>碎股（作一手計）</span><span>${r.frac.toLocaleString()} 股</span></div>` : ''}
-      <div class="calc-row subtotal"><span>HKSCC 收費手數</span><span>${r.totalLots.toLocaleString()} 手</span></div>
-    </div>
-    <div class="calc-section">
-      <div class="calc-section-title">中央結算費用</div>
-      <div class="calc-row"><span>${r.totalLots} 手 × HK$3.50</span><span>HK$${r.hkscc.toFixed(2)}</span></div>
-    </div>
-    <div class="calc-section">
-      <div class="calc-section-title">富途證券手續費</div>
-      <div class="calc-row"><span>每手費 ${r.totalLots} 手 × HK$1.50</span><span>HK$${coPerLot.toFixed(2)}</span></div>
-      ${r.mode === 'split' && r.extra > 0 ? `<div class="calc-row"><span>拆細行政費 第6-${r.nCerts}張 × HK$100（共${r.extra}張）</span><span>HK$${r.admin.toFixed(2)}</span></div>` : ''}
-      ${r.fracFee > 0 ? `<div class="calc-row"><span>碎股附加費</span><span>HK$100.00</span></div>` : ''}
-      ${r.coFee > r.coRaw ? `<div class="calc-row adjusted"><span>↑ 適用最低收費 HK$500.00</span><span>HK$${r.coFee.toFixed(2)}</span></div>` : ''}
-      <div class="calc-row subtotal"><span>富途證券手續費合計</span><span>HK$${r.coFee.toFixed(2)}</span></div>
-    </div>`;
-
-    if (multi) {
-      html += `<div class="calc-total" style="font-size:14px;background:var(--bg2);color:var(--text1);"><span>小計（${label}）</span><span>HK$${r.grand.toFixed(2)}</span></div>`;
-    }
+  // 每隻股票 inline 費用卡
+  results.forEach(r => {
+    const feeDiv = document.getElementById(`calcFeeInline_${r.stock.id}`);
+    if (feeDiv) { feeDiv.innerHTML = buildInlineFeeHtml(r); feeDiv.style.display = ''; }
   });
-  if (multi) {
-    html += `<div class="calc-section" style="margin-top:8px;">
-      <div class="calc-section-title">各項費用合計</div>
-      <div class="calc-row"><span>中央結算費用合計</span><span>HK$${totalHkscc.toFixed(2)}</span></div>
-      <div class="calc-row"><span>富途證券手續費合計</span><span>HK$${totalCo.toFixed(2)}</span></div>
-    </div>`;
-  }
-  document.getElementById('calcResultsContent').innerHTML = html;
-  const card = document.getElementById('calcResultsCard');
-  card.style.display = '';
-  document.querySelector('.calc-results-panel').style.display = '';
-  const totalBar = document.getElementById('calcTotalBar');
-  if (totalBar) {
-    document.getElementById('calcTotalBarAmount').textContent = `HK$${grandTotal.toFixed(2)}`;
-    totalBar.style.display = 'flex';
-  }
+
+  // 右欄不再使用
+  document.querySelector('.calc-results-panel').style.display = 'none';
+
   document.getElementById('calcConfirmCard').style.display = calcIsPublic ? 'none' : '';
   document.getElementById('calcConfirmDate').value = todayStr;
   document.getElementById('calcAccountInput').value = '';
@@ -1043,8 +1005,8 @@ function calcClearAll() {
   document.getElementById('calcResultsCard').style.display  = 'none';
   document.getElementById('calcConfirmCard').style.display  = 'none';
   document.querySelector('.calc-results-panel').style.display = 'none';
-  const totalBar = document.getElementById('calcTotalBar');
-  if (totalBar) totalBar.style.display = 'none';
+  document.getElementById('calcTotalBar').style.display = 'none';
+  document.getElementById('calcCopyBarBtn').style.display = 'none';
 }
 
 function calcBuildPlainNormal(total, lotSize, whole, frac, totalLots, hkscc, coBase, coRaw, coFee, fracFee, grand) {

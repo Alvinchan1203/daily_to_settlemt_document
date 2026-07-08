@@ -202,9 +202,12 @@
         <button class="btn-primary" style="white-space:nowrap;" onclick="calcBatchAddByCode(document.getElementById('calcQuickCodes').value)">新增並查詢</button>
       </div>
       <!-- 頂部總費用列 -->
-      <div id="calcTotalBar" style="display:none; background:#1677FF; color:#fff; border-radius:8px; padding:10px 20px; margin-bottom:14px; font-size:16px; font-weight:700; justify-content:space-between; align-items:center;">
-        <span>總費用</span>
-        <span id="calcTotalBarAmount"></span>
+      <div style="margin-bottom:14px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <div id="calcTotalBar" style="display:none; background:#1677FF; color:#fff; border-radius:8px; padding:10px 20px; font-size:16px; font-weight:700; gap:20px; align-items:center;">
+          <span>總費用</span>
+          <span id="calcTotalBarAmount"></span>
+        </div>
+        <button id="calcCopyBarBtn" class="btn-secondary" style="display:none;" onclick="calcCopyResults()">複製結果</button>
       </div>
       <div class="calc-outer">
 
