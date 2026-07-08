@@ -654,8 +654,18 @@ function calcGenCerts(id) {
   renderCertFields(id);
   const batchDiv = document.getElementById(`calcBatchFill_${id}`);
   if (batchDiv) batchDiv.style.display = 'flex';
+  calcUpdateBatchFrom(id);
   const first = document.getElementById(`calcCertInput_${id}_0`);
   if (first) first.focus();
+}
+
+function calcUpdateBatchFrom(id) {
+  const stock = calcStocks.find(s => s.id === id);
+  if (!stock) return;
+  const fromEl = document.getElementById(`calcBatchFrom_${id}`);
+  if (!fromEl) return;
+  const firstEmpty = stock.certShares.findIndex(s => !s || s < 1);
+  fromEl.value = firstEmpty === -1 ? '' : firstEmpty + 1;
 }
 
 function calcBatchFill(id) {
@@ -676,6 +686,10 @@ function calcBatchFill(id) {
   renderCertFields(id);
   const batchDiv = document.getElementById(`calcBatchFill_${id}`);
   if (batchDiv) batchDiv.style.display = 'flex';
+  calcUpdateBatchFrom(id);
+  sharesEl.value = '';
+  countEl.value = '';
+  sharesEl.focus();
 }
 
 function calcClearCertShares(id) {
@@ -685,6 +699,7 @@ function calcClearCertShares(id) {
   renderCertFields(id);
   const batchDiv = document.getElementById(`calcBatchFill_${id}`);
   if (batchDiv) batchDiv.style.display = 'flex';
+  calcUpdateBatchFrom(id);
 }
 
 function renderCertFields(id) {
@@ -713,6 +728,7 @@ function calcUpdateCertShare(id, certIdx, value) {
   stock.certShares[certIdx] = value ? parseInt(value) : null;
   const totalEl = document.getElementById(`calcCertTotal_${id}`);
   if (totalEl) totalEl.textContent = calcCertTotalText(stock);
+  calcUpdateBatchFrom(id);
 }
 
 function calcToggleCertDetail(btn) {
