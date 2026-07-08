@@ -587,6 +587,16 @@ function buildStockCardHTML(stock, idx) {
         <button class="btn-secondary" onclick="calcGenCerts(${stock.id})">確認</button>
       </div>
       <div id="calcCertFields_${stock.id}">${certFieldsHtml}</div>
+      <div id="calcBatchFill_${stock.id}" style="display:${stock.certShares.length > 0 ? 'flex' : 'none'};gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap;">
+        <span style="font-size:13px;color:var(--text2);">批量填入：</span>
+        <input id="calcBatchShares_${stock.id}" type="number" class="form-input" style="width:100px;" placeholder="股數" min="1"
+          onkeydown="if(event.key==='Enter'){event.stopPropagation();calcBatchFill(${stock.id});}" />
+        <span style="font-size:13px;color:var(--text2);">股 ×</span>
+        <input id="calcBatchCount_${stock.id}" type="number" class="form-input" style="width:75px;" placeholder="全部" min="1"
+          onkeydown="if(event.key==='Enter'){event.stopPropagation();calcBatchFill(${stock.id});}" />
+        <span style="font-size:13px;color:var(--text2);">張（從第1張起）</span>
+        <button class="btn-secondary" onclick="calcBatchFill(${stock.id})">填入</button>
+      </div>
     </div>`;
   return `
     <div class="card-header">
@@ -638,8 +648,25 @@ function calcGenCerts(id) {
   const old = stock.certShares || [];
   stock.certShares = Array.from({ length: n }, (_, i) => old[i] || null);
   renderCertFields(id);
+  const batchDiv = document.getElementById(`calcBatchFill_${id}`);
+  if (batchDiv) batchDiv.style.display = 'flex';
   const first = document.getElementById(`calcCertInput_${id}_0`);
   if (first) first.focus();
+}
+
+function calcBatchFill(id) {
+  const stock = calcStocks.find(s => s.id === id);
+  if (!stock || !stock.certShares.length) return;
+  const sharesEl = document.getElementById(`calcBatchShares_${id}`);
+  const countEl  = document.getElementById(`calcBatchCount_${id}`);
+  const shares = parseInt(sharesEl.value);
+  if (!shares || shares < 1) { alert('請輸入有效股數'); sharesEl.focus(); return; }
+  const count = parseInt(countEl.value) || stock.certShares.length;
+  const n = Math.min(count, stock.certShares.length);
+  for (let i = 0; i < n; i++) stock.certShares[i] = shares;
+  renderCertFields(id);
+  const batchDiv = document.getElementById(`calcBatchFill_${id}`);
+  if (batchDiv) batchDiv.style.display = 'flex';
 }
 
 function renderCertFields(id) {
