@@ -594,8 +594,12 @@ function buildStockCardHTML(stock, idx) {
         <span style="font-size:13px;color:var(--text2);">股 ×</span>
         <input id="calcBatchCount_${stock.id}" type="number" class="form-input" style="width:75px;" placeholder="全部" min="1"
           onkeydown="if(event.key==='Enter'){event.stopPropagation();calcBatchFill(${stock.id});}" />
-        <span style="font-size:13px;color:var(--text2);">張（從第1張起）</span>
+        <span style="font-size:13px;color:var(--text2);">張，從第</span>
+        <input id="calcBatchFrom_${stock.id}" type="number" class="form-input" style="width:60px;" placeholder="1" min="1"
+          onkeydown="if(event.key==='Enter'){event.stopPropagation();calcBatchFill(${stock.id});}" />
+        <span style="font-size:13px;color:var(--text2);">張起</span>
         <button class="btn-secondary" onclick="calcBatchFill(${stock.id})">填入</button>
+        <button class="btn-secondary" style="color:#e53e3e;border-color:#e53e3e;" onclick="calcClearCertShares(${stock.id})">清除所有股數</button>
       </div>
     </div>`;
   return `
@@ -659,11 +663,25 @@ function calcBatchFill(id) {
   if (!stock || !stock.certShares.length) return;
   const sharesEl = document.getElementById(`calcBatchShares_${id}`);
   const countEl  = document.getElementById(`calcBatchCount_${id}`);
+  const fromEl   = document.getElementById(`calcBatchFrom_${id}`);
   const shares = parseInt(sharesEl.value);
   if (!shares || shares < 1) { alert('請輸入有效股數'); sharesEl.focus(); return; }
-  const count = parseInt(countEl.value) || stock.certShares.length;
-  const n = Math.min(count, stock.certShares.length);
-  for (let i = 0; i < n; i++) stock.certShares[i] = shares;
+  const fromVal = parseInt(fromEl.value) || 1;
+  const startIdx = Math.max(0, fromVal - 1);
+  if (startIdx >= stock.certShares.length) { alert(`起始張數不可超過 ${stock.certShares.length} 張`); fromEl.focus(); return; }
+  const remaining = stock.certShares.length - startIdx;
+  const count = parseInt(countEl.value) || remaining;
+  const n = Math.min(count, remaining);
+  for (let i = startIdx; i < startIdx + n; i++) stock.certShares[i] = shares;
+  renderCertFields(id);
+  const batchDiv = document.getElementById(`calcBatchFill_${id}`);
+  if (batchDiv) batchDiv.style.display = 'flex';
+}
+
+function calcClearCertShares(id) {
+  const stock = calcStocks.find(s => s.id === id);
+  if (!stock || !stock.certShares.length) return;
+  stock.certShares = stock.certShares.map(() => null);
   renderCertFields(id);
   const batchDiv = document.getElementById(`calcBatchFill_${id}`);
   if (batchDiv) batchDiv.style.display = 'flex';
