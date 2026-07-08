@@ -497,6 +497,18 @@ function calcRemoveStock(id) {
   else renderCalcStocks();
 }
 
+async function calcBatchAddByCode(codesStr) {
+  const codes = codesStr.split(/[\s,，]+/).map(c => c.trim()).filter(c => /^\d+$/.test(c));
+  if (codes.length === 0) { alert('請輸入有效股票代號（純數字），以空格或逗號分隔'); return; }
+  calcStocks = codes.map((code, i) => ({
+    id: Date.now() + i, code, name: '', lotSize: null, mode: 'normal', shares: null, nCerts: null, certShares: [], dataDate: undefined
+  }));
+  renderCalcStocks();
+  const inputEl = document.getElementById('calcQuickCodes');
+  if (inputEl) inputEl.value = '';
+  await Promise.all(calcStocks.map(s => calcLookupForStock(s.id)));
+}
+
 function renderCalcStocks() {
   const container = document.getElementById('calcStockList');
   const wrap = document.querySelector('.calc-wrap');
