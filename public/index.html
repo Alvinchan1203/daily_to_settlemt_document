@@ -208,6 +208,7 @@
           <span id="calcTotalBarAmount"></span>
         </div>
         <button id="calcCopyBarBtn" class="btn-secondary" style="display:none;" onclick="calcCopyResults()">複製結果</button>
+        <button id="calcEmailBtn" class="btn-secondary" style="display:none;" onclick="calcGenerateEmail()">電郵模版</button>
       </div>
       <div class="calc-outer">
 
@@ -372,6 +373,22 @@
           </div>
         </div>
 
+      </div>
+    </div>
+  </div>
+
+  <!-- 電郵模版 Modal -->
+  <div id="emailModalOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)closeEmailModal()">
+    <div style="background:#fff;border-radius:12px;width:100%;max-width:680px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,0.2);">
+      <div style="padding:16px 24px 14px;border-bottom:1px solid #E8E8E8;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+        <span style="font-size:16px;font-weight:700;color:#1A1A1A;">電郵模版</span>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button id="copyEmailBtn" class="btn-primary" style="padding:6px 16px;" onclick="calcCopyEmail()">複製電郵</button>
+          <button onclick="closeEmailModal()" style="background:none;border:none;font-size:20px;color:#9CA3AF;cursor:pointer;line-height:1;padding:0 4px;">✕</button>
+        </div>
+      </div>
+      <div style="padding:20px 24px;overflow-y:auto;flex:1;">
+        <textarea id="emailModalContent" style="width:100%;height:520px;border:1px solid #D9D9D9;border-radius:8px;padding:14px;font-size:13px;line-height:1.7;color:#1A1A1A;resize:vertical;font-family:inherit;box-sizing:border-box;"></textarea>
       </div>
     </div>
   </div>

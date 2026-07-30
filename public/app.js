@@ -946,6 +946,7 @@ function renderCalcResults(results) {
   document.getElementById('calcTotalBarAmount').textContent = `HK$${grandTotal.toFixed(2)}`;
   document.getElementById('calcTotalBar').style.display = 'flex';
   document.getElementById('calcCopyBarBtn').style.display = '';
+  document.getElementById('calcEmailBtn').style.display = '';
 
   // 每隻股票 inline 費用卡
   results.forEach(r => {
@@ -979,6 +980,62 @@ async function calcCopyResults() {
   const orig = btn.textContent;
   btn.textContent = '✓ 已複製';
   setTimeout(() => { btn.textContent = orig; }, 2000);
+}
+
+function calcGenerateEmail() {
+  if (!calcResults || calcResults.length === 0) return;
+  const feeLines = calcResults.map(r => {
+    const label = r.stock.code
+      ? (r.stock.name ? `${r.stock.code} ${r.stock.name}` : r.stock.code)
+      : `股票 #${calcResults.indexOf(r) + 1}`;
+    return `${label}：HK$${r.grand.toFixed(2)}`;
+  });
+  if (calcResults.length > 1) {
+    const total = calcResults.reduce((s, r) => s + r.grand, 0);
+    feeLines.push(`合計費用：HK$${total.toFixed(2)}`);
+  }
+  const feeBlock = feeLines.join('\n');
+
+  const emailText =
+`尊敬的客戶：
+
+您好，閣下之指示/文件已交予相關同事處理，提取實物股票申請需時5-7個工作日（如碎股，有機會視乎上游處理時間而延長）。如可領取，閣下會收到電郵及【富途牛牛】APP通知，請耐心等候，謝謝。
+有關提取實物股票之收費包括:
+1.    富途證券手續費（每隻股票每手港幣1.50元，非整手碎股或特別要求拆細提取則收取每張100元行政費，每隻股票提取申請最低收費為港幣500元）及
+2.    香港中央結算有限公司收費（每隻每手股票港幣3.50元，碎股亦視作一手）。
+
+是次申請費用預算如下：
+${feeBlock}
+
+請閣下保證賬戶內有足夠資金用以扣取費用（否則我們將會取消指示），一旦扣取成功，不予取消指示及申請退款，望閣下知悉。
+
+如有任何問題，歡迎隨時與我們聯絡。
+多謝您選用本行服務。
+客戶服務團隊
+
+富途證券國際(香港)有限公司
+客服電話: +852 25233588
+公司地址: 香港金鐘道95號統一中心34樓
+DISCLAIMER:
+The information contained in this e-mail is confidential and intended solely for the addressee.
+If this e-mail was sent to you in error, please notify the sender immediately by return of this e-mail
+and delete it from your system. The information contained in this e-mail is the sender's own concern.`;
+
+  document.getElementById('emailModalContent').value = emailText;
+  document.getElementById('copyEmailBtn').textContent = '複製電郵';
+  document.getElementById('emailModalOverlay').style.display = 'flex';
+}
+
+function closeEmailModal() {
+  document.getElementById('emailModalOverlay').style.display = 'none';
+}
+
+async function calcCopyEmail() {
+  const text = document.getElementById('emailModalContent').value;
+  await navigator.clipboard.writeText(text).catch(() => alert('複製失敗，請手動選取文字'));
+  const btn = document.getElementById('copyEmailBtn');
+  btn.textContent = '✓ 已複製';
+  setTimeout(() => { btn.textContent = '複製電郵'; }, 2000);
 }
 
 async function calcConfirmApply() {
@@ -1043,6 +1100,7 @@ function calcClearAll() {
   document.querySelector('.calc-results-panel').style.display = 'none';
   document.getElementById('calcTotalBar').style.display = 'none';
   document.getElementById('calcCopyBarBtn').style.display = 'none';
+  document.getElementById('calcEmailBtn').style.display = 'none';
 }
 
 function calcBuildPlainNormal(total, lotSize, whole, frac, totalLots, hkscc, coBase, coRaw, coFee, fracFee, grand) {
