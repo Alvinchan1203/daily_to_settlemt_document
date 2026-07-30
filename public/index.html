@@ -197,7 +197,7 @@
       <!-- 快速新增股票 -->
       <div style="margin-bottom:16px; display:flex; gap:8px; align-items:center;">
         <input id="calcQuickCodes" type="text" class="form-input" style="flex:1;"
-          placeholder="快速新增：只查每手 → 700 941 1299　　一般提取並計算 → 700:1000 941:500 1299:2000"
+          placeholder="快速新增：只查每手 → 700 941 1299　　一般提取並計算 → 700-1000 941-500 1299-2000"
           onkeydown="if(event.key==='Enter'){event.stopPropagation();calcBatchAddByCode(this.value);}" />
         <button class="btn-primary" style="white-space:nowrap;" onclick="calcBatchAddByCode(document.getElementById('calcQuickCodes').value)">新增並查詢</button>
       </div>
