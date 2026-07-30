@@ -998,19 +998,42 @@ function calcGenerateEmail() {
   }
   const feeBlock = feeLines.join('<br/>');
 
-  const emailHtml = `<div style="font-family:sans-serif;line-height:1.7;color:#1A1A1A;max-width:700px;">
-<p><img src="${FUTU_LOGO_B64}" style="height:38px;" /></p>
-<p>尊敬的客戶：</p>
-<p>您好，閣下之指示/文件已交予相關同事處理，提取實物股票申請需時5-7個工作日（如碎股，有機會視乎上游處理時間而延長）。如可領取，閣下會收到電郵及【富途牛牛】APP通知，請耐心等候，謝謝。<br/>
+  const emailHtml = `<div style="font-family:sans-serif;line-height:1.6;color:#1A1A1A;max-width:700px;">
+<img src="${FUTU_LOGO_B64}" style="height:38px;display:block;margin-bottom:16px;" />
+尊敬的客戶：<br/>
+<br/>
+您好，閣下之指示/文件已交予相關同事處理，提取實物股票申請需時5-7個工作日（如碎股，有機會視乎上游處理時間而延長）。如可領取，閣下會收到電郵及【富途牛牛】APP通知，請耐心等候，謝謝。<br/>
+<br/>
+<br/>
 有關提取實物股票之收費包括:<br/>
 1.&nbsp;&nbsp;&nbsp;&nbsp;富途證券手續費（每隻股票每手港幣1.50元，非整手碎股或特別要求拆細提取則收取每張100元行政費，每隻股票提取申請最低收費為港幣500元）及<br/>
-2.&nbsp;&nbsp;&nbsp;&nbsp;香港中央結算有限公司收費（每隻每手股票港幣3.50元，碎股亦視作一手）。</p>
-<p><strong>是次申請費用預算如下：</strong><br/>${feeBlock}</p>
-<p>請閣下保證賬戶內有足夠資金用以扣取費用（否則我們將會取消指示），一旦扣取成功，不予取消指示及申請退款，望閣下知悉。</p>
-<p>如有任何問題，歡迎隨時與我們聯絡。<br/>多謝您選用本行服務。<br/>客戶服務團隊</p>
-<p>&nbsp;</p>
-<p>富途證券國際(香港)有限公司<br/>客服電話: +852 25233588<br/>公司地址: 香港金鐘道95號統一中心34樓</p>
-<p style="font-size:11px;color:#888;">DISCLAIMER:<br/>The information contained in this e-mail is confidential and intended solely for the addressee.<br/>If this e-mail was sent to you in error, please notify the sender immediately by return of this e-mail<br/>and delete it from your system. The information contained in this e-mail is the sender's own concern.</p>
+2.&nbsp;&nbsp;&nbsp;&nbsp;香港中央結算有限公司收費（每隻每手股票港幣3.50元，碎股亦視作一手）。<br/>
+<br/>
+<br/>
+<br/>
+<strong>是次申請費用預算如下：</strong><br/>
+${feeBlock}<br/>
+<br/>
+<br/>
+<br/>
+請閣下保證賬戶內有足夠資金用以扣取費用（否則我們將會取消指示），一旦扣取成功，不予取消指示及申請退款，望閣下知悉。<br/>
+<br/>
+<br/>
+<br/>
+如有任何問題，歡迎隨時與我們聯絡。<br/>
+多謝您選用本行服務。<br/>
+客戶服務團隊<br/>
+<br/>
+&nbsp;<br/>
+<br/>
+富途證券國際(香港)有限公司<br/>
+客服電話: +852 25233588<br/>
+公司地址: 香港金鐘道95號統一中心34樓<br/>
+<br/>
+<span style="font-size:11px;color:#888;">DISCLAIMER:<br/>
+The information contained in this e-mail is confidential and intended solely for the addressee.<br/>
+If this e-mail was sent to you in error, please notify the sender immediately by return of this e-mail<br/>
+and delete it from your system. The information contained in this e-mail is the sender's own concern.</span>
 </div>`;
 
   const emailDiv = document.getElementById('emailModalContent');
