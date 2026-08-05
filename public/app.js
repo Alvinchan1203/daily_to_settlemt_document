@@ -884,10 +884,11 @@ function calcRunAll() {
       const coPerLot = totalLots * CALC_CO_PER_LOT;
       const extra    = Math.max(0, nCerts - CALC_FREE_CERTS);
       const admin    = extra * CALC_SPLIT_ADMIN;
-      const fracFee  = frac > 0 ? CALC_FRAC_FEE : 0;
+      const fracCerts = stock.certShares.filter(s => s % lotSize > 0).length;
+      const fracFee  = fracCerts * CALC_FRAC_FEE;
       const coRaw    = coPerLot + admin + fracFee;
       const coFee    = Math.max(CALC_CO_MIN, coRaw);
-      results.push({ stock, total, whole, frac, totalLots, hkscc, coRaw, coFee, fracFee, grand: hkscc + coFee, mode: 'split', nCerts, extra, admin, coPerLot, certShares: stock.certShares });
+      results.push({ stock, total, whole, frac, totalLots, hkscc, coRaw, coFee, fracFee, fracCerts, grand: hkscc + coFee, mode: 'split', nCerts, extra, admin, coPerLot, certShares: stock.certShares });
     }
   }
   calcResults = results;
@@ -929,7 +930,7 @@ function buildInlineFeeHtml(r) {
     <div class="calc-section-title">富途證券手續費</div>
     <div class="calc-row"><span>每手費 ${r.totalLots} 手 × HK$1.50</span><span>HK$${coPerLot.toFixed(2)}</span></div>
     ${r.mode === 'split' && r.extra > 0 ? `<div class="calc-row"><span>拆細行政費 第1-${r.nCerts}張 × HK$100（共${r.extra}張）</span><span>HK$${r.admin.toFixed(2)}</span></div>` : ''}
-    ${r.fracFee > 0 ? `<div class="calc-row"><span>碎股附加費</span><span>HK$100.00</span></div>` : ''}
+    ${r.fracFee > 0 ? `<div class="calc-row"><span>碎股附加費${r.mode === 'split' && r.fracCerts > 1 ? ` (${r.fracCerts} 張 × HK$100)` : ''}</span><span>HK$${r.fracFee.toFixed(2)}</span></div>` : ''}
     ${r.coFee > r.coRaw ? `<div class="calc-row adjusted"><span>↑ 適用最低收費 HK$500.00</span><span>HK$${r.coFee.toFixed(2)}</span></div>` : ''}
     <div class="calc-row subtotal"><span>富途證券手續費合計</span><span>HK$${r.coFee.toFixed(2)}</span></div>
   </div>
@@ -1167,7 +1168,10 @@ function calcBuildPlainSplit(total, lotSize, whole, frac, totalLots, nCerts, ext
     `中央結算費用 : ${totalLots}手 × $3.50 = HK$${hkscc.toFixed(2)}`, '-'.repeat(38),
     `我司每手費   : ${totalLots}手 × $1.50 = HK$${coPerLot.toFixed(2)}`);
   if (extra > 0) lines.push(`拆細行政費   : ${extra}張 × $100 = HK$${admin.toFixed(2)}`);
-  if (fracFee > 0) lines.push(`碎股附加費   : HK$100.00`);
+  if (fracFee > 0) {
+    const fracCertsCount = certShares ? certShares.filter(s => s % lotSize > 0).length : 0;
+    lines.push(`碎股附加費   : ${fracCertsCount > 1 ? `${fracCertsCount}張 × $100 = ` : ''}HK$${fracFee.toFixed(2)}`);
+  }
   if (coFee > coRaw) lines.push(`（適用最低收費）         = HK$${coFee.toFixed(2)}`);
   lines.push(`富途證券手續費合計 : HK$${coFee.toFixed(2)}`);
   lines.push('='.repeat(38), `總費用       : HK$${grand.toFixed(2)}`, '='.repeat(38));
