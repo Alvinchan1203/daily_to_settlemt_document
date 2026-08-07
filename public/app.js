@@ -501,21 +501,46 @@ function calcRemoveStock(id) {
 
 async function calcBatchAddByCode(codesStr) {
   const tokens = codesStr.trim().split(/[\s,，]+/).map(t => t.trim()).filter(Boolean);
-  const entries = tokens.map(t => {
-    const [code, sharesStr] = t.split(/[-]/);
-    const shares = sharesStr ? parseInt(sharesStr) : null;
-    return /^\d+$/.test(code) ? { code, shares: (shares && shares > 0) ? shares : null } : null;
-  }).filter(Boolean);
-  if (entries.length === 0) { alert('請輸入有效股票代號，格式：700-1000 3988-2000\n或只輸入代號：700 3988'); return; }
-  calcStocks = entries.map(({ code, shares }, i) => ({
-    id: Date.now() + i, code, name: '', lotSize: null, mode: 'normal', shares, nCerts: null, certShares: [], dataDate: undefined
+  const entries = [];
+  for (const t of tokens) {
+    const parts = t.split('-');
+    const code = parts[0];
+    if (!/^\d+$/.test(code)) continue;
+    if (parts.length === 3 && (parts[2].includes('.') || parts[2].includes('*'))) {
+      const totalShares = parseInt(parts[1]);
+      const certShares = parts[2].split('.').flatMap(seg => {
+        if (seg.includes('*')) {
+          const [s, n] = seg.split('*').map(Number);
+          return (s > 0 && n > 0) ? Array.from({ length: n }, () => s) : [NaN];
+        }
+        return [Number(seg)];
+      });
+      if (certShares.some(isNaN) || certShares.some(s => s <= 0)) continue;
+      const certTotal = certShares.reduce((a, b) => a + b, 0);
+      if (certTotal !== totalShares) {
+        alert(`股票 ${code}：每張股數之和（${certTotal}）與提取總股數（${totalShares}）不符，請檢查。`);
+        return;
+      }
+      entries.push({ code, mode: 'split', shares: null, nCerts: certShares.length, certShares });
+    } else {
+      const shares = parts[1] ? parseInt(parts[1]) : null;
+      entries.push({ code, mode: 'normal', shares: (shares && shares > 0) ? shares : null, nCerts: null, certShares: [] });
+    }
+  }
+  if (entries.length === 0) { alert('請輸入有效股票代號，格式：\n只查每手：700 941\n一般提取：700-1000 941-500\n特別拆細（逐張）：700-5-1.1.1.1.1（代號-總股數-每張股數）\n特別拆細（相同）：700-5-1*5（代號-總股數-每張股數*張數）'); return; }
+  calcStocks = entries.map(({ code, mode, shares, nCerts, certShares }, i) => ({
+    id: Date.now() + i, code, name: '', lotSize: null, mode, shares, nCerts, certShares, dataDate: undefined
   }));
   renderCalcStocks();
   const inputEl = document.getElementById('calcQuickCodes');
   if (inputEl) inputEl.value = '';
   await Promise.all(calcStocks.map(s => calcLookupForStock(s.id)));
-  const allHaveShares = calcStocks.every(s => s.shares && s.shares > 0);
-  if (allHaveShares) calcRunAll();
+  const allReady = calcStocks.every(s =>
+    s.mode === 'split'
+      ? (s.certShares && s.certShares.length > 0 && s.certShares.every(c => c && c > 0))
+      : (s.shares && s.shares > 0)
+  );
+  if (allReady) calcRunAll();
 }
 
 function renderCalcStocks() {
