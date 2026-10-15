@@ -294,12 +294,12 @@ app.get('/api/debug-lotsize', (req, res) => {
 async function triggerLotsizeUpdate(res) {
   const githubToken = process.env.GITHUB_TOKEN;
   if (!githubToken) return res.status(500).json({ code: -1, msg: 'GITHUB_TOKEN 未設定' });
+  const gh = { headers: { 'Authorization': `Bearer ${githubToken}`, 'Accept': 'application/vnd.github+json' } };
+  const wfUrl = 'https://api.github.com/repos/Alvinchan1203/daily_to_settlemt_document/actions/workflows/update-lotsize.yml';
   try {
-    await axios.post(
-      'https://api.github.com/repos/Alvinchan1203/daily_to_settlemt_document/actions/workflows/update-lotsize.yml/dispatches',
-      { ref: 'main' },
-      { headers: { 'Authorization': `Bearer ${githubToken}`, 'Accept': 'application/vnd.github+json' } }
-    );
+    // GitHub 會自動停用 60 天無活動的排程工作，先確保處於啟用狀態再觸發
+    await axios.put(`${wfUrl}/enable`, {}, gh);
+    await axios.post(`${wfUrl}/dispatches`, { ref: 'main' }, gh);
     res.json({ code: 0, msg: '已觸發更新，約1分鐘後完成' });
   } catch (e) {
     res.status(500).json({ code: -1, msg: e.response?.data?.message || e.message });
