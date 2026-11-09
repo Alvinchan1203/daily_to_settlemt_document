@@ -157,7 +157,7 @@ function applyPriceSourceBtn(prefix, v) {
 function calcSetPriceSource(v) {
   calcPriceSource = v;
   // 價源變咗，舊有已查價同結果作廢
-  calcStocks.forEach(s => { s.closePrice = null; s.closeDate = null; s.priceKind = null; s.priceTime = null; });
+  calcStocks.forEach(s => { s.closePrice = null; s.closeDate = null; s.priceKind = null; s.priceTime = null; s.manualNeeded = false; s.manualPriceInput = ''; });
   calcResults = null;
   renderCalcStocks();
   document.getElementById('calcTotalBar').style.display = 'none';
@@ -168,7 +168,7 @@ function calcSetPriceSource(v) {
 
 function depSetPriceSource(v) {
   depPriceSource = v;
-  depStocks.forEach(s => { s.closePrice = null; s.closeDate = null; s.priceKind = null; s.priceTime = null; });
+  depStocks.forEach(s => { s.closePrice = null; s.closeDate = null; s.priceKind = null; s.priceTime = null; s.manualNeeded = false; s.manualPriceInput = ''; });
   depResults = null;
   renderDepStocks();
   depUpdateTotalBar();
@@ -607,7 +607,7 @@ let calcPriceSource = 'close'; // 'close' = 前一交易日收市價（正式）
 
 function calcAddStock() {
   const id = Date.now() + calcStocks.length;
-  calcStocks.push({ id, code: '', name: '', lotSize: null, mode: 'normal', shares: null, nCerts: null, certShares: [], dataDate: undefined });
+  calcStocks.push({ id, code: '', name: '', lotSize: null, mode: 'normal', shares: null, nCerts: null, certShares: [], dataDate: undefined, closePrice: null, closeDate: null, priceKind: null, priceTime: null, manualNeeded: false, manualPriceInput: '' });
   renderCalcStocks();
 }
 
@@ -790,6 +790,14 @@ function buildStockCardHTML(stock, idx) {
           <div style="margin-top:4px;font-size:12px;color:var(--text3);">如查詢失敗，請手動輸入</div>
         </div>
       </div>
+      ${calcFeeVersion === 'new' && stock.manualNeeded ? `
+      <div style="margin-bottom:12px; padding:10px; border:1px solid #FA8C16; border-radius:8px; background:#FFF7E6;">
+        <label class="form-label">手動價格（HK$）</label>
+        <input id="calcManual_${stock.id}" type="number" step="any" class="form-input" style="max-width:220px;" placeholder="自動查價失敗，請輸入價格" min="0" value="${stock.manualPriceInput || ''}"
+          oninput="calcManualInput(${stock.id}, this.value)"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();event.stopPropagation();calcApplyManual(${stock.id});}" />
+        <div style="margin-top:4px; font-size:12px; color:#FA8C16;">⚠ 自動查價失敗，輸入後按 Enter 或「計算費用」</div>
+      </div>` : ''}
       <div class="calc-mode-toggle" style="margin-bottom:12px;">
         <button class="calc-mode-btn ${stock.mode === 'normal' ? 'active' : ''}" onclick="calcSetStockMode(${stock.id},'normal')">一般提取</button>
         <button class="calc-mode-btn ${stock.mode === 'split' ? 'active' : ''}" onclick="calcSetStockMode(${stock.id},'split')">特別拆細提取</button>
@@ -904,12 +912,36 @@ function calcToggleCertDetail(btn) {
 function calcUpdateField(id, field, value) {
   const stock = calcStocks.find(s => s.id === id);
   if (!stock) return;
+  // 代號變咗，之前查嘅價同手動價輸入作廢
+  if (field === 'code' && stock.code !== value.trim()) {
+    stock.closePrice = null; stock.closeDate = null; stock.priceKind = null; stock.priceTime = null;
+    stock.manualNeeded = false; stock.manualPriceInput = '';
+  }
   stock[field] = (field === 'lotSize' || field === 'shares' || field === 'nCerts') ? (value ? parseInt(value) : null) : value;
 }
 
 function calcSetStockMode(id, mode) {
   const stock = calcStocks.find(s => s.id === id);
   if (stock) { stock.mode = mode; renderCalcStocks(); }
+}
+
+function calcManualInput(id, value) {
+  const stock = calcStocks.find(s => s.id === id);
+  if (stock) stock.manualPriceInput = value;
+}
+
+function calcApplyManual(id) {
+  const stock = calcStocks.find(s => s.id === id);
+  if (!stock) return;
+  const v = parseFloat(stock.manualPriceInput);
+  if (!v || v <= 0) { alert('請輸入有效價格（大於 0）'); return; }
+  stock.closePrice = v;
+  stock.closeDate  = null;
+  stock.priceKind  = 'manual';
+  stock.priceTime  = '手動輸入';
+  stock.manualNeeded = false;
+  renderCalcStocks();
+  calcRunAll();
 }
 
 function openFeeHelp() {
@@ -1020,7 +1052,22 @@ async function calcRunAll() {
   const origText = btn ? btn.textContent : '';
   if (btn) { btn.disabled = true; btn.textContent = realtime ? '查詢即時價中…' : '查詢收市價中…'; }
   try {
+    // 手動輸入價：查價失敗嘅股票如已填，直接採用（備援）
     for (const stock of calcStocks) {
+      if (!stock.closePrice && stock.manualNeeded) {
+        const manual = parseFloat(stock.manualPriceInput);
+        if (manual > 0) {
+          stock.closePrice = manual;
+          stock.closeDate  = null;
+          stock.priceKind  = 'manual';
+          stock.priceTime  = '手動輸入';
+          stock.manualNeeded = false;
+        }
+      }
+    }
+    const failed = [];
+    for (const stock of calcStocks) {
+      if (stock.closePrice) continue;
       try {
         const resp = await fetch(realtime ? `/api/realtime-price/${parseInt(stock.code, 10)}` : `/api/close-price/${parseInt(stock.code, 10)}`);
         const data = await resp.json();
@@ -1032,13 +1079,20 @@ async function calcRunAll() {
           stock.priceTime  = realtime ? data.updateTime : data.tradeDate;
           if (data.name) stock.name = data.name;
         } else {
-          alert(`股票 ${stock.code}：${data.error || '未能取得價格'}\n（${realtime ? '即時報價' : '收市價數據日期'}：${data.updateTime || data.tradeDate || '未知'}）\n請確認股票代號正確（窩輪／牛熊證等不適用）。`);
-          return;
+          stock.manualNeeded = true;
+          failed.push(stock.code);
         }
       } catch {
-        alert(`股票 ${stock.code}：查詢${realtime ? '即時價' : '收市價'}失敗，請稍後再試。`);
-        return;
+        stock.manualNeeded = true;
+        failed.push(stock.code);
       }
+    }
+    if (failed.length) {
+      renderCalcStocks();
+      alert(`股票 ${failed.join('、')}：自動查價失敗，請喺股票卡嘅「手動價格」欄輸入價格，再按「計算費用」。`);
+      const first = calcStocks.find(s => s.manualNeeded);
+      if (first) { const el = document.getElementById(`calcManual_${first.id}`); if (el) el.focus(); }
+      return;
     }
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = origText; }
@@ -1147,10 +1201,10 @@ function buildInlineFeeHtml(r) {
     ${r.frac > 0 ? `<div class="calc-row"><span>碎股</span><span>${r.frac.toLocaleString()} 股</span></div>` : ''}
   </div>
   <div class="calc-section">
-    <div class="calc-section-title">${r.priceKind === 'realtime' ? `收費基準（etnet 即時價 ${r.priceTime}，延遲約15分鐘）` : `收費基準（${r.closeDate} 收市價）`}</div>
-    <div class="calc-row"><span>${r.priceKind === 'realtime' ? '即時價（etnet）' : '收市價'}</span><span>HK$${r.closePrice}</span></div>
+    <div class="calc-section-title">${r.priceKind === 'realtime' ? `收費基準（etnet 即時價 ${r.priceTime}，延遲約15分鐘）` : r.priceKind === 'manual' ? '收費基準（手動輸入價）' : `收費基準（${r.closeDate} 收市價）`}</div>
+    <div class="calc-row"><span>${r.priceKind === 'realtime' ? '即時價（etnet）' : r.priceKind === 'manual' ? '手動價' : '收市價'}</span><span>HK$${r.closePrice}</span></div>
     <div class="calc-row subtotal"><span>市值（${r.total.toLocaleString()} 股 × HK$${r.closePrice}）</span><span>HK$${r.marketValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
-    ${r.priceKind === 'realtime' ? '<div style="font-size:12px; color:#FA8C16; margin-top:6px;">⚠ 即時價由 etnet 網站取得，為延遲約15分鐘報價，只作預估；實際收費以申請日前一交易日收市價計算</div>' : ''}
+    ${r.priceKind === 'realtime' ? '<div style="font-size:12px; color:#FA8C16; margin-top:6px;">⚠ 即時價由 etnet 網站取得，為延遲約15分鐘報價，只作預估；實際收費以申請日前一交易日收市價計算</div>' : r.priceKind === 'manual' ? '<div style="font-size:12px; color:#FA8C16; margin-top:6px;">⚠ 價格為手動輸入，只作預估；實際收費以申請日前一交易日收市價計算</div>' : ''}
   </div>
   <div class="calc-section">
     <div class="calc-section-title">中央結算費用（HKSCC）</div>
@@ -1294,7 +1348,12 @@ ${feeDescHtml}
 <br/>
 <br/>
 <br/>
-<strong>是次申請費用預算如下：</strong>${calcResults.some(r => r.priceKind === 'realtime') ? '<br/><span style="font-size:12px;color:#FA8C16;">（以 etnet 即時價預估，延遲約15分鐘；實際收費以申請日前一交易日收市價計算）</span>' : ''}<br/>
+<strong>是次申請費用預算如下：</strong>${(() => {
+  const notes = [];
+  if (calcResults.some(r => r.priceKind === 'realtime')) notes.push('以 etnet 即時價預估，延遲約15分鐘');
+  if (calcResults.some(r => r.priceKind === 'manual')) notes.push('以手動輸入價格預估');
+  return notes.length ? `<br/><span style="font-size:12px;color:#FA8C16;">（${notes.join('；')}；實際收費以申請日前一交易日收市價計算）</span>` : '';
+})()}<br/>
 ${feeBlock}<br/>
 <br/>
 <br/>
@@ -1377,7 +1436,8 @@ async function calcConfirmApply() {
           total_shares: r.total,
           total_fee: r.grand,
           hkscc_fee: r.hkscc,
-          company_fee: r.feeVersion === 'old' ? r.coFee : r.coRaw
+          // 新收費適用最低收費時，差額撥入富途欄，令 HKSCC＋富途＝總費用
+          company_fee: r.feeVersion === 'old' ? r.coFee : (r.minApplied ? Math.round((r.grand - r.hkscc) * 100) / 100 : r.coRaw)
         })
       });
       const data = await res.json();
@@ -1426,7 +1486,7 @@ function calcBuildPlainNormal(r) {
     `整手數       : ${r.whole.toLocaleString()} 手`,
   ];
   if (r.frac > 0) lines.push(`碎股         : ${r.frac.toLocaleString()} 股`);
-  lines.push(`${r.priceKind === 'realtime' ? `即時價 etnet (${r.priceTime})` : `收市價 (${r.closeDate})`} : HK$${r.closePrice}`,
+  lines.push(`${r.priceKind === 'realtime' ? `即時價 etnet (${r.priceTime})` : r.priceKind === 'manual' ? '手動價 (手動輸入)' : `收市價 (${r.closeDate})`} : HK$${r.closePrice}`,
     `市值         : ${r.total.toLocaleString()} 股 × HK$${r.closePrice} = HK$${r.marketValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
     '-'.repeat(38),
     `中央結算費用 : 市值 × 0.015% = HK$${r.hkscc.toFixed(2)}`,
@@ -1436,6 +1496,7 @@ function calcBuildPlainNormal(r) {
   lines.push(`富途證券手續費合計 : HK$${r.coRaw.toFixed(2)}`);
   if (r.minApplied) lines.push(`↑ 適用最低收費（所有項目總和 HK$${CALC_MIN_TOTAL.toFixed(2)}）`);
   if (r.priceKind === 'realtime') lines.push('※ 即時價由 etnet 取得，延遲約15分鐘，只作預估');
+  else if (r.priceKind === 'manual') lines.push('※ 價格為手動輸入，只作預估');
   lines.push('='.repeat(38), `總費用       : HK$${r.grand.toFixed(2)}`, '='.repeat(38));
   return lines.join('\n');
 }
@@ -1450,7 +1511,7 @@ function calcBuildPlainSplit(r) {
     `每手股數     : ${r.stock.lotSize.toLocaleString()} 股`,
     `整手數       : ${r.whole.toLocaleString()} 手`);
   if (r.frac > 0) lines.push(`碎股         : ${r.frac.toLocaleString()} 股`);
-  lines.push(`${r.priceKind === 'realtime' ? `即時價 etnet (${r.priceTime})` : `收市價 (${r.closeDate})`} : HK$${r.closePrice}`,
+  lines.push(`${r.priceKind === 'realtime' ? `即時價 etnet (${r.priceTime})` : r.priceKind === 'manual' ? '手動價 (手動輸入)' : `收市價 (${r.closeDate})`} : HK$${r.closePrice}`,
     `市值         : ${r.total.toLocaleString()} 股 × HK$${r.closePrice} = HK$${r.marketValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
     '-'.repeat(38),
     `中央結算費用 : 市值 × 0.015% = HK$${r.hkscc.toFixed(2)}`,
@@ -1463,6 +1524,7 @@ function calcBuildPlainSplit(r) {
   lines.push(`富途證券手續費合計 : HK$${r.coRaw.toFixed(2)}`);
   if (r.minApplied) lines.push(`↑ 適用最低收費（所有項目總和 HK$${CALC_MIN_TOTAL.toFixed(2)}）`);
   if (r.priceKind === 'realtime') lines.push('※ 即時價由 etnet 取得，延遲約15分鐘，只作預估');
+  else if (r.priceKind === 'manual') lines.push('※ 價格為手動輸入，只作預估');
   lines.push('='.repeat(38), `總費用       : HK$${r.grand.toFixed(2)}`, '='.repeat(38));
   return lines.join('\n');
 }
@@ -1519,7 +1581,7 @@ let depPriceSource = 'close'; // 'close' = 前一交易日收市價（正式）�
 
 function depAddStock() {
   depIdSeq += 1;
-  depStocks.push({ id: depIdSeq, code: '', name: '', secType: 'part', nCerts: null, nDeeds: null, totalShares: null, closePrice: null, closeDate: null, priceKind: null, priceTime: null });
+  depStocks.push({ id: depIdSeq, code: '', name: '', secType: 'part', nCerts: null, nDeeds: null, totalShares: null, closePrice: null, closeDate: null, priceKind: null, priceTime: null, manualNeeded: false, manualPriceInput: '' });
   renderDepStocks();
 }
 
@@ -1547,6 +1609,7 @@ function depUpdateField(id, field, value) {
   if (field === 'code') {
     s.code = value.trim();
     s.name = ''; s.closePrice = null; s.closeDate = null; s.priceKind = null; s.priceTime = null;
+    s.manualNeeded = false; s.manualPriceInput = '';
     if (depResults && depResults[id]) { delete depResults[id]; renderDepStocks(); depUpdateTotalBar(); }
     return;
   }
@@ -1567,6 +1630,25 @@ function depSetType(id, value) {
     renderDepStocks();
     depUpdateTotalBar();
   }
+}
+
+function depManualInput(id, value) {
+  const s = depStocks.find(x => x.id === id);
+  if (s) s.manualPriceInput = value;
+}
+
+function depApplyManual(id) {
+  const s = depStocks.find(x => x.id === id);
+  if (!s) return;
+  const v = parseFloat(s.manualPriceInput);
+  if (!v || v <= 0) { alert('請輸入有效價格（大於 0）'); return; }
+  s.closePrice = v;
+  s.closeDate  = null;
+  s.priceKind  = 'manual';
+  s.priceTime  = '手動輸入';
+  s.manualNeeded = false;
+  renderDepStocks();
+  depRunAll();
 }
 
 function depCalcStock(s) {
@@ -1625,6 +1707,20 @@ async function depRunAll() {
   depRunning = true;
   btn.disabled = true; btn.textContent = realtime ? '查詢即時價中…' : '查詢收市價中…';
   try {
+    // 手動輸入價：查價失敗嘅股票如已填，直接採用（備援）
+    for (const s of depStocks) {
+      if (!s.closePrice && s.manualNeeded) {
+        const manual = parseFloat(s.manualPriceInput);
+        if (manual > 0) {
+          s.closePrice = manual;
+          s.closeDate  = null;
+          s.priceKind  = 'manual';
+          s.priceTime  = '手動輸入';
+          s.manualNeeded = false;
+        }
+      }
+    }
+    const failed = [];
     for (const s of depStocks) {
       if (s.closePrice) continue;
       try {
@@ -1638,13 +1734,20 @@ async function depRunAll() {
           s.priceTime  = realtime ? data.updateTime : data.tradeDate;
           if (data.name) s.name = data.name;
         } else {
-          alert(`股票 ${s.code}：${data.error || '未能取得價格'}\n（${realtime ? '即時報價' : '收市價數據日期'}：${data.updateTime || data.tradeDate || '未知'}）\n請確認股票代號正確（窩輪／牛熊證等不適用）。`);
-          return;
+          s.manualNeeded = true;
+          failed.push(s.code);
         }
       } catch {
-        alert(`股票 ${s.code}：查詢${realtime ? '即時價' : '收市價'}失敗，請稍後再試。`);
-        return;
+        s.manualNeeded = true;
+        failed.push(s.code);
       }
+    }
+    if (failed.length) {
+      renderDepStocks();
+      alert(`股票 ${failed.join('、')}：自動查價失敗，請喺股票卡嘅「手動價格」欄輸入價格，再按「計算費用」。`);
+      const first = depStocks.find(x => x.manualNeeded);
+      if (first) { const el = document.getElementById(`depManual_${first.id}`); if (el) el.focus(); }
+      return;
     }
     depResults = {};
     depStocks.forEach(s => { const r = depCalcStock(s); if (r) depResults[s.id] = r; });
@@ -1702,6 +1805,14 @@ function renderDepStocks() {
               oninput="depUpdateField(${s.id},'totalShares',this.value)"
               onkeydown="depEnterNav(event, ${s.id}, 'totalShares')" />
           </div>
+          ${s.manualNeeded ? `
+          <div style="padding:10px; border:1px solid #FA8C16; border-radius:8px; background:#FFF7E6;">
+            <label class="form-label">手動價格（HK$）</label>
+            <input type="number" step="any" id="depManual_${s.id}" class="form-input" placeholder="自動查價失敗，請輸入價格" min="0" value="${s.manualPriceInput || ''}"
+              oninput="depManualInput(${s.id}, this.value)"
+              onkeydown="if(event.key==='Enter' && !event.repeat){event.preventDefault();depApplyManual(${s.id});}" />
+            <div style="margin-top:4px; font-size:12px; color:#FA8C16;">⚠ 自動查價失敗，輸入後按 Enter 或「計算費用」</div>
+          </div>` : ''}
         </div>
       </div>
       <div style="flex:1; min-width:300px; max-width:520px;">
@@ -1718,10 +1829,10 @@ function buildDepResultHtml(r) {
     <div class="card-header"><span>存入費用明細（${typeLabel}）</span></div>
     <div class="card-body">
       <div class="calc-section">
-        <div class="calc-section-title">${r.priceKind === 'realtime' ? `收費基準（etnet 即時價 ${r.priceTime}，延遲約15分鐘）` : `收費基準（${fmtDateDMY(r.closeDate)} 收市價）`}</div>
-        <div class="calc-row"><span>${r.priceKind === 'realtime' ? '即時價（etnet）' : '收市價'}</span><span>HK$${r.closePrice.toFixed(2)}</span></div>
+        <div class="calc-section-title">${r.priceKind === 'realtime' ? `收費基準（etnet 即時價 ${r.priceTime}，延遲約15分鐘）` : r.priceKind === 'manual' ? '收費基準（手動輸入價）' : `收費基準（${fmtDateDMY(r.closeDate)} 收市價）`}</div>
+        <div class="calc-row"><span>${r.priceKind === 'realtime' ? '即時價（etnet）' : r.priceKind === 'manual' ? '手動價' : '收市價'}</span><span>HK$${r.closePrice.toFixed(2)}</span></div>
         <div class="calc-row subtotal"><span>股份價值（${r.totalShares.toLocaleString()} 股 × HK$${r.closePrice.toFixed(2)}）</span><span>HK$${r.marketValue.toFixed(2)}</span></div>
-        ${r.priceKind === 'realtime' ? '<div style="font-size:12px; color:#FA8C16; margin-top:6px;">⚠ 即時價由 etnet 網站取得，為延遲約15分鐘報價，只作預估；實際收費以申請日前一交易日收市價計算</div>' : ''}
+        ${r.priceKind === 'realtime' ? '<div style="font-size:12px; color:#FA8C16; margin-top:6px;">⚠ 即時價由 etnet 網站取得，為延遲約15分鐘報價，只作預估；實際收費以申請日前一交易日收市價計算</div>' : r.priceKind === 'manual' ? '<div style="font-size:12px; color:#FA8C16; margin-top:6px;">⚠ 價格為手動輸入，只作預估；實際收費以申請日前一交易日收市價計算</div>' : ''}
       </div>
       <div class="calc-section">
         <div class="calc-section-title">證書資料</div>
@@ -1774,7 +1885,7 @@ function depCopyResults() {
     lines.push(`證書張數      : ${r.nCerts ? `${r.nCerts} 張` : '—'}`);
     lines.push(`轉手紙張數    : ${r.nDeeds} 張`);
     lines.push(`總股數        : ${r.totalShares.toLocaleString()} 股`);
-    lines.push(`${r.priceKind === 'realtime' ? `即時價 etnet (${r.priceTime})` : `收市價 (${fmtDateDMY(r.closeDate)})`} : HK$${r.closePrice.toFixed(2)}`);
+    lines.push(`${r.priceKind === 'realtime' ? `即時價 etnet (${r.priceTime})` : r.priceKind === 'manual' ? '手動價 (手動輸入)' : `收市價 (${fmtDateDMY(r.closeDate)})`} : HK$${r.closePrice.toFixed(2)}`);
     lines.push(`股份價值      : ${r.totalShares.toLocaleString()} 股 × HK$${r.closePrice.toFixed(2)} = HK$${r.marketValue.toFixed(2)}`);
     lines.push('-'.repeat(38));
     lines.push(`政府轉手紙釐印費   : ${r.nDeeds}張轉手紙 × HK$5.00 = HK$${r.stamp.toFixed(2)}`);
@@ -1788,6 +1899,7 @@ function depCopyResults() {
   lines.push(`總費用       : HK$${total.toFixed(2)}`, '='.repeat(38));
   lines.push('（所有費用以實際扣款為準）');
   if (vals.some(r => r.priceKind === 'realtime')) lines.push('※ 即時價由 etnet 取得，延遲約15分鐘，只作預估；實際收費以申請日前一交易日收市價計算');
+  else if (vals.some(r => r.priceKind === 'manual')) lines.push('※ 價格為手動輸入，只作預估；實際收費以申請日前一交易日收市價計算');
   navigator.clipboard.writeText(lines.join('\n')).then(() => {
     const btn = document.getElementById('depCopyBtn');
     if (btn) { const t = btn.textContent; btn.textContent = '✓ 已複製'; setTimeout(() => { btn.textContent = t; }, 1500); }
