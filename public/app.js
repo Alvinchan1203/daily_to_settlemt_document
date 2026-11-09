@@ -789,15 +789,15 @@ function buildStockCardHTML(stock, idx) {
           <input id="calcLot_${stock.id}" type="number" class="form-input" style="width:150px;" placeholder="自動填入或手動" min="1" value="${stock.lotSize || ''}" oninput="calcUpdateField(${stock.id},'lotSize',this.value)" />
           <div style="margin-top:4px;font-size:12px;color:var(--text3);">如查詢失敗，請手動輸入</div>
         </div>
+        ${calcFeeVersion === 'new' ? `
+        <div>
+          <label class="form-label">手動價格（HK$）</label>
+          <input id="calcManual_${stock.id}" type="number" step="any" class="form-input" style="width:150px;${stock.manualNeeded ? ' border-color:#FA8C16;' : ''}" placeholder="選填，留空自動查價" min="0" value="${stock.manualPriceInput || ''}"
+            oninput="calcManualInput(${stock.id}, this.value)"
+            onkeydown="if(event.key==='Enter' && !event.repeat){event.preventDefault();event.stopPropagation();calcApplyManual(${stock.id});}" />
+          ${stock.manualNeeded ? '<div style="margin-top:4px;font-size:12px;color:#FA8C16;">⚠ 自動查價失敗，請輸入價格</div>' : ''}
+        </div>` : ''}
       </div>
-      ${calcFeeVersion === 'new' && stock.manualNeeded ? `
-      <div style="margin-bottom:12px; padding:10px; border:1px solid #FA8C16; border-radius:8px; background:#FFF7E6;">
-        <label class="form-label">手動價格（HK$）</label>
-        <input id="calcManual_${stock.id}" type="number" step="any" class="form-input" style="max-width:220px;" placeholder="自動查價失敗，請輸入價格" min="0" value="${stock.manualPriceInput || ''}"
-          oninput="calcManualInput(${stock.id}, this.value)"
-          onkeydown="if(event.key==='Enter'){event.preventDefault();event.stopPropagation();calcApplyManual(${stock.id});}" />
-        <div style="margin-top:4px; font-size:12px; color:#FA8C16;">⚠ 自動查價失敗，輸入後按 Enter 或「計算費用」</div>
-      </div>` : ''}
       <div class="calc-mode-toggle" style="margin-bottom:12px;">
         <button class="calc-mode-btn ${stock.mode === 'normal' ? 'active' : ''}" onclick="calcSetStockMode(${stock.id},'normal')">一般提取</button>
         <button class="calc-mode-btn ${stock.mode === 'split' ? 'active' : ''}" onclick="calcSetStockMode(${stock.id},'split')">特別拆細提取</button>
@@ -933,6 +933,7 @@ function calcManualInput(id, value) {
 function calcApplyManual(id) {
   const stock = calcStocks.find(s => s.id === id);
   if (!stock) return;
+  if (!stock.manualPriceInput) return;
   const v = parseFloat(stock.manualPriceInput);
   if (!v || v <= 0) { alert('請輸入有效價格（大於 0）'); return; }
   stock.closePrice = v;
@@ -1052,17 +1053,18 @@ async function calcRunAll() {
   const origText = btn ? btn.textContent : '';
   if (btn) { btn.disabled = true; btn.textContent = realtime ? '查詢即時價中…' : '查詢收市價中…'; }
   try {
-    // 手動輸入價：查價失敗嘅股票如已填，直接採用（備援）
+    // 手動價格：有填就用（優先於自動查價）；清空咗嘅手動價作廢，重新自動查價
     for (const stock of calcStocks) {
-      if (!stock.closePrice && stock.manualNeeded) {
-        const manual = parseFloat(stock.manualPriceInput);
-        if (manual > 0) {
-          stock.closePrice = manual;
-          stock.closeDate  = null;
-          stock.priceKind  = 'manual';
-          stock.priceTime  = '手動輸入';
-          stock.manualNeeded = false;
-        }
+      const manual = parseFloat(stock.manualPriceInput);
+      if (manual > 0) {
+        stock.closePrice = manual;
+        stock.closeDate  = null;
+        stock.priceKind  = 'manual';
+        stock.priceTime  = '手動輸入';
+        stock.manualNeeded = false;
+      } else if (stock.priceKind === 'manual') {
+        stock.closePrice = null; stock.closeDate = null; stock.priceKind = null; stock.priceTime = null;
+        stock.manualNeeded = false;
       }
     }
     const failed = [];
@@ -1640,6 +1642,7 @@ function depManualInput(id, value) {
 function depApplyManual(id) {
   const s = depStocks.find(x => x.id === id);
   if (!s) return;
+  if (!s.manualPriceInput) return;
   const v = parseFloat(s.manualPriceInput);
   if (!v || v <= 0) { alert('請輸入有效價格（大於 0）'); return; }
   s.closePrice = v;
@@ -1707,17 +1710,18 @@ async function depRunAll() {
   depRunning = true;
   btn.disabled = true; btn.textContent = realtime ? '查詢即時價中…' : '查詢收市價中…';
   try {
-    // 手動輸入價：查價失敗嘅股票如已填，直接採用（備援）
+    // 手動價格：有填就用（優先於自動查價）；清空咗嘅手動價作廢，重新自動查價
     for (const s of depStocks) {
-      if (!s.closePrice && s.manualNeeded) {
-        const manual = parseFloat(s.manualPriceInput);
-        if (manual > 0) {
-          s.closePrice = manual;
-          s.closeDate  = null;
-          s.priceKind  = 'manual';
-          s.priceTime  = '手動輸入';
-          s.manualNeeded = false;
-        }
+      const manual = parseFloat(s.manualPriceInput);
+      if (manual > 0) {
+        s.closePrice = manual;
+        s.closeDate  = null;
+        s.priceKind  = 'manual';
+        s.priceTime  = '手動輸入';
+        s.manualNeeded = false;
+      } else if (s.priceKind === 'manual') {
+        s.closePrice = null; s.closeDate = null; s.priceKind = null; s.priceTime = null;
+        s.manualNeeded = false;
       }
     }
     const failed = [];
@@ -1799,20 +1803,21 @@ function renderDepStocks() {
                 onkeydown="depEnterNav(event, ${s.id}, 'nDeeds')" />
             </div>
           </div>
-          <div>
-            <label class="form-label">總股數</label>
-            <input type="number" id="depShares_${s.id}" class="form-input" min="1" placeholder="全部股數" value="${s.totalShares ?? ''}"
-              oninput="depUpdateField(${s.id},'totalShares',this.value)"
-              onkeydown="depEnterNav(event, ${s.id}, 'totalShares')" />
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div>
+              <label class="form-label">總股數</label>
+              <input type="number" id="depShares_${s.id}" class="form-input" min="1" placeholder="全部股數" value="${s.totalShares ?? ''}"
+                oninput="depUpdateField(${s.id},'totalShares',this.value)"
+                onkeydown="depEnterNav(event, ${s.id}, 'totalShares')" />
+            </div>
+            <div>
+              <label class="form-label">手動價格（HK$）</label>
+              <input type="number" step="any" id="depManual_${s.id}" class="form-input" style="${s.manualNeeded ? 'border-color:#FA8C16;' : ''}" placeholder="選填，留空自動查價" min="0" value="${s.manualPriceInput || ''}"
+                oninput="depManualInput(${s.id}, this.value)"
+                onkeydown="if(event.key==='Enter' && !event.repeat){event.preventDefault();depApplyManual(${s.id});}" />
+              ${s.manualNeeded ? '<div style="margin-top:4px; font-size:12px; color:#FA8C16;">⚠ 自動查價失敗，請輸入價格</div>' : ''}
+            </div>
           </div>
-          ${s.manualNeeded ? `
-          <div style="padding:10px; border:1px solid #FA8C16; border-radius:8px; background:#FFF7E6;">
-            <label class="form-label">手動價格（HK$）</label>
-            <input type="number" step="any" id="depManual_${s.id}" class="form-input" placeholder="自動查價失敗，請輸入價格" min="0" value="${s.manualPriceInput || ''}"
-              oninput="depManualInput(${s.id}, this.value)"
-              onkeydown="if(event.key==='Enter' && !event.repeat){event.preventDefault();depApplyManual(${s.id});}" />
-            <div style="margin-top:4px; font-size:12px; color:#FA8C16;">⚠ 自動查價失敗，輸入後按 Enter 或「計算費用」</div>
-          </div>` : ''}
         </div>
       </div>
       <div style="flex:1; min-width:300px; max-width:520px;">
