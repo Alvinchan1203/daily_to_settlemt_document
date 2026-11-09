@@ -65,7 +65,7 @@ body {
   display: grid;
   grid-template-columns: 1fr auto;
   position: relative;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 .tab-item {
@@ -79,6 +79,7 @@ body {
   transition: all 0.2s;
   text-decoration: none;
   user-select: none;
+  white-space: nowrap;
 }
 
 .tab-item:hover { color: var(--blue); }
