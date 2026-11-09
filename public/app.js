@@ -60,8 +60,8 @@ async function initApp() {
     sessionStorage.removeItem('appPassword');
     appPassword = '';
   }
-  // No stored password — initialize on public calc tab
-  switchTab('calc-public');
+  // No stored password — initialize on public calc tab（11月12日前預設舊收費版，之後自動轉新版）
+  switchTab(new Date() >= new Date(2026, 10, 12) ? 'calc-public-new' : 'calc-public-old');
 }
 
 const FIELDS = [
@@ -81,10 +81,22 @@ let customRangeStart = null;
 let customRangeEnd = null;
 
 const todayStr = new Date().toLocaleDateString('sv-SE');
+
+// YYYY-MM-DD → DD-MM-YYYY（顯示用）
+function fmtDateDMY(iso) {
+  const p = String(iso || '').split('-');
+  return p.length === 3 ? `${p[2]}-${p[1]}-${p[0]}` : iso;
+}
 document.getElementById('dateInput').value = todayStr;
 
 // 分頁切換
-const PRIVATE_TABS = new Set(['input', 'stats', 'calc']);
+const PRIVATE_TABS = new Set(['input', 'stats', 'calc-old', 'calc-new']);
+const CALC_TABS = {
+  'calc-old':        { isPublic: false, version: 'old' },
+  'calc-new':        { isPublic: false, version: 'new' },
+  'calc-public-old': { isPublic: true,  version: 'old' },
+  'calc-public-new': { isPublic: true,  version: 'new' }
+};
 
 function switchTab(tab) {
   document.querySelectorAll('[data-tab]').forEach(l => l.classList.remove('active'));
@@ -92,17 +104,68 @@ function switchTab(tab) {
   if (link) link.classList.add('active');
   document.getElementById('tab-input').style.display = tab === 'input' ? 'block' : 'none';
   document.getElementById('tab-stats').style.display = tab === 'stats' ? 'block' : 'none';
-  document.getElementById('tab-calc').style.display  = (tab === 'calc' || tab === 'calc-public') ? 'block' : 'none';
-  calcIsPublic = tab === 'calc-public';
-  if (calcResults) {
+  document.getElementById('tab-lot').style.display   = tab === 'lot' ? 'block' : 'none';
+  document.getElementById('tab-deposit').style.display = tab === 'deposit' ? 'block' : 'none';
+  const cfg = CALC_TABS[tab];
+  document.getElementById('tab-calc').style.display = cfg ? 'block' : 'none';
+  if (cfg) {
+    calcIsPublic = cfg.isPublic;
+    calcFeeVersion = cfg.version;
+    updateCalcVersionBanner();
+  }
+  if (cfg && calcResults) {
     document.getElementById('calcConfirmCard').style.display = calcIsPublic ? 'none' : '';
   }
-  if (tab === 'calc' || tab === 'calc-public') {
+  if (cfg) {
     renderCalcStocks();
   }
   const helpBtn = document.getElementById('calcHelpBtn');
   if (helpBtn) helpBtn.style.display = calcIsPublic ? '' : 'none';
+  if (tab === 'deposit') { renderDepStocks(); applyPriceSourceBtn('dep', depPriceSource); }
   if (tab === 'stats') loadStats();
+}
+
+function updateCalcVersionBanner() {
+  const el = document.getElementById('calcVersionBanner');
+  if (!el) return;
+  el.innerHTML = calcFeeVersion === 'old'
+    ? '<span style="color:#FA8C16;">⚠ 舊收費標準：HKSCC 每手 HK$3.50 ＋ 富途每手 HK$1.50（富途部分最低 HK$500）— 適用至 2026年11月11日</span>'
+    : '<span style="color:#1677FF;">新收費標準：前一交易日收市價市值 × 0.015%（HKSCC）＋ 0.015%（富途），每隻股票所有項目總和最低 HK$500 — 2026年11月12日起生效</span>';
+  // 即時價切換只喺新收費（市值計）先有用；舊收費按手數計，唔涉股價
+  const toggle = document.getElementById('calcPriceSourceToggle');
+  if (toggle) toggle.style.display = calcFeeVersion === 'new' ? 'flex' : 'none';
+  applyPriceSourceBtn('calc', calcPriceSource);
+}
+
+function applyPriceSourceBtn(prefix, v) {
+  const on = document.getElementById(prefix + 'SrcClose');
+  const off = document.getElementById(prefix + 'SrcRealtime');
+  if (!on || !off) return;
+  const active = { background: '#1677FF', color: '#fff' };
+  const idle = { background: '#fff', color: 'var(--text2)' };
+  if (v === 'close') { Object.assign(on.style, active); Object.assign(off.style, idle); }
+  else { Object.assign(off.style, active); Object.assign(on.style, idle); }
+}
+
+function calcSetPriceSource(v) {
+  calcPriceSource = v;
+  // 價源變咗，舊有已查價同結果作廢
+  calcStocks.forEach(s => { s.closePrice = null; s.closeDate = null; s.priceKind = null; s.priceTime = null; });
+  calcResults = null;
+  renderCalcStocks();
+  document.getElementById('calcTotalBar').style.display = 'none';
+  document.getElementById('calcCopyBarBtn').style.display = 'none';
+  document.getElementById('calcEmailBtn').style.display = 'none';
+  applyPriceSourceBtn('calc', v);
+}
+
+function depSetPriceSource(v) {
+  depPriceSource = v;
+  depStocks.forEach(s => { s.closePrice = null; s.closeDate = null; s.priceKind = null; s.priceTime = null; });
+  depResults = null;
+  renderDepStocks();
+  depUpdateTotalBar();
+  applyPriceSourceBtn('dep', v);
 }
 
 document.querySelectorAll('[data-tab]').forEach(link => {
@@ -118,6 +181,48 @@ document.querySelectorAll('[data-tab]').forEach(link => {
     }
     switchTab(tab);
   });
+});
+
+// 查詢每手股數（獨立頁面，支援多隻：空格／逗號分隔）
+async function lotLookup() {
+  const input = document.getElementById('lotCodeInput');
+  const box = document.getElementById('lotResult');
+  const codes = [...new Set(input.value.trim().split(/[\s,，、]+/).filter(Boolean))];
+  if (codes.length === 0) { box.innerHTML = '<span style="color:var(--red);">請輸入股票代號（純數字）</span>'; return; }
+  const invalid = codes.filter(c => !/^\d+$/.test(c));
+  if (invalid.length > 0) { box.innerHTML = `<span style="color:var(--red);">以下股票代號無效（須為純數字）：${invalid.join('、')}</span>`; return; }
+  box.innerHTML = '<span style="color:var(--text3);">查詢中…</span>';
+  try {
+    const datas = await Promise.all(codes.map(async code => {
+      try {
+        const resp = await fetch(`/api/lotsize/${parseInt(code, 10)}`);
+        return { code, ...(await resp.json()) };
+      } catch {
+        return { code, error: '查詢失敗，請稍後再試' };
+      }
+    }));
+    const rows = datas.map(d => {
+      if (!d.lotSize) {
+        return `<tr><td>${d.code}</td><td colspan="2" style="color:#FA8C16;">⚠ ${d.error || '查無此股票，請手動確認'}</td></tr>`;
+      }
+      const dateNote = d.updatedAt === null
+        ? '<span style="color:#FA8C16;">⚠ 未知，請手動確認</span>'
+        : (d.updatedAt !== todayStr
+          ? `<span style="color:#FA8C16;">${fmtDateDMY(d.updatedAt)}（非今日）</span>`
+          : `<span style="color:var(--green);">✓ ${fmtDateDMY(d.updatedAt)}（今日）</span>`);
+      return `<tr><td>${d.code}${d.stockName ? `　${d.stockName}` : ''}</td><td style="text-align:right;">${d.lotSize.toLocaleString()} 股</td><td style="text-align:right;">${dateNote}</td></tr>`;
+    }).join('');
+    box.innerHTML = `<table class="futu-table" style="margin-top:4px;">
+      <thead><tr><th>股票</th><th style="text-align:right;">每手股數</th><th style="text-align:right;">數據更新日期</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  } catch {
+    box.innerHTML = '<span style="color:var(--red);">查詢失敗，請稍後再試</span>';
+  }
+}
+
+document.getElementById('lotCodeInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') lotLookup();
 });
 
 document.getElementById('dateInput').addEventListener('change', () => loadTodayRecords());
@@ -475,17 +580,23 @@ async function fetchAllFeeRecords() {
 
 // ===== 收費計算器 =====
 let calcIsPublic = true;
-const CALC_HKSCC_PER_LOT = 3.50;
-const CALC_CO_PER_LOT    = 1.50;
+let calcFeeVersion = 'old'; // 'old' = 舊收費（用至11月11日）；'new' = 新收費（11月12日起）
+const CALC_HKSCC_RATE    = 0.00015;  // 市值 × 0.015%
+const CALC_CO_RATE       = 0.00015;  // 市值 × 0.015%
 const CALC_SPLIT_ADMIN   = 100.00;
 const CALC_FREE_CERTS    = 0;
-const CALC_CO_MIN        = 500.00;
+const CALC_MIN_TOTAL     = 500.00;   // 每隻股票所有項目總和最低收費
 const CALC_FRAC_FEE      = 100.00;
+// 舊收費常數（適用至 2026年11月11日）
+const CALC_HKSCC_PER_LOT = 3.50;
+const CALC_CO_PER_LOT    = 1.50;
+const CALC_CO_MIN        = 500.00;
 const FUTU_LOGO_B64 = 'data:image/png;base64,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';
 
 
 let calcStocks  = [];
 let calcResults = null;
+let calcPriceSource = 'close'; // 'close' = 前一交易日收市價（正式）；'realtime' = etnet 即時價（預估，延遲約15分鐘）
 
 function calcAddStock() {
   const id = Date.now() + calcStocks.length;
@@ -586,9 +697,9 @@ function buildStockCardHTML(stock, idx) {
     if (stock.dataDate === null) {
       statusHtml = `<span style="color:#FA8C16;">⚠ 數據更新日期未知，請手動確認每手股數</span>`;
     } else if (stock.dataDate !== todayStr) {
-      statusHtml = `<span style="color:#FA8C16;">⚠ 數據更新日期：${stock.dataDate}（非今日），請手動確認每手股數</span>`;
+      statusHtml = `<span style="color:#FA8C16;">⚠ 數據更新日期：${fmtDateDMY(stock.dataDate)}（非今日），請手動確認每手股數</span>`;
     } else {
-      statusHtml = `<span style="color:var(--green);">✓ 數據為今日（來源：HKEX）</span>`;
+      statusHtml = `<span style="color:var(--green);">✓ 數據更新日期：${fmtDateDMY(stock.dataDate)}（今日，來源：HKEX）</span>`;
     }
   }
   const removeBtn = calcStocks.length > 1
@@ -795,11 +906,13 @@ function calcSetStockMode(id, mode) {
 }
 
 function openFeeHelp() {
-  document.getElementById('feeHelpOverlay').style.display = 'flex';
+  document.getElementById(calcFeeVersion === 'old' ? 'feeHelpOverlayOld' : 'feeHelpOverlay').style.display = 'flex';
 }
 
 function closeFeeHelp() {
   document.getElementById('feeHelpOverlay').style.display = 'none';
+  const oldEl = document.getElementById('feeHelpOverlayOld');
+  if (oldEl) oldEl.style.display = 'none';
 }
 
 async function triggerLotsizeUpdate(btn) {
@@ -847,9 +960,9 @@ async function calcLookupForStock(id) {
       if (stock.dataDate === null) {
         status.innerHTML = `<span style="color:#FA8C16;">⚠ 數據更新日期未知，請手動確認每手股數</span>`;
       } else if (stock.dataDate !== todayStr) {
-        status.innerHTML = `<span style="color:#FA8C16;">⚠ 數據更新日期：${stock.dataDate}（非今日），請手動確認每手股數</span>`;
+        status.innerHTML = `<span style="color:#FA8C16;">⚠ 數據更新日期：${fmtDateDMY(stock.dataDate)}（非今日），請手動確認每手股數</span>`;
       } else {
-        status.innerHTML = `<span style="color:var(--green);">✓ 已自動填入（來源：${data.source}，數據為今日）</span>`;
+        status.innerHTML = `<span style="color:var(--green);">✓ 已自動填入（來源：${data.source}，更新日期：${fmtDateDMY(stock.dataDate)}）</span>`;
       }
     } else {
       status.innerHTML = `<span style="color:#FA8C16;">⚠ ${data.error || '查詢失敗，請手動輸入'}</span>`;
@@ -878,14 +991,96 @@ function calcSyncInputs() {
   }
 }
 
-function calcRunAll() {
+async function calcRunAll() {
   calcSyncInputs();
-  const results = [];
+  const r2 = v => Math.round(v * 100) / 100;
   for (let i = 0; i < calcStocks.length; i++) {
     const stock = calcStocks[i];
+    if (calcFeeVersion === 'new' && (!stock.code || !/^\d+$/.test(stock.code))) { alert(`股票 #${i+1}：請輸入有效股票代號（純數字）`); return; }
     if (!stock.lotSize || stock.lotSize < 1) { alert(`股票 #${i+1}：請輸入每手股數`); return; }
     if (stock.mode === 'normal') {
       if (!stock.shares || stock.shares < 1) { alert(`股票 #${i+1}：請輸入提取股數`); return; }
+    } else {
+      if (!stock.certShares || stock.certShares.length === 0) { alert(`股票 #${i+1}：請先輸入分拆張數並點擊「確認」`); return; }
+      if (stock.certShares.some(s => !s || s < 1)) { alert(`股票 #${i+1}：請填入所有分拆張數的股數`); return; }
+    }
+  }
+  if (calcFeeVersion === 'old') { runOldFeeCalc(); return; }
+
+  // 查詢各股票價格：收市價＝正式（前一交易日）；即時價＝預估（etnet，延遲約15分鐘）
+  const realtime = calcPriceSource === 'realtime';
+  const btn = document.querySelector('button[onclick="calcRunAll()"]');
+  const origText = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = realtime ? '查詢即時價中…' : '查詢收市價中…'; }
+  try {
+    for (const stock of calcStocks) {
+      try {
+        const resp = await fetch(realtime ? `/api/realtime-price/${parseInt(stock.code, 10)}` : `/api/close-price/${parseInt(stock.code, 10)}`);
+        const data = await resp.json();
+        const price = realtime ? data.price : data.closePrice;
+        if (price) {
+          stock.closePrice = price;
+          stock.closeDate  = realtime ? null : data.tradeDate;
+          stock.priceKind  = realtime ? 'realtime' : 'close';
+          stock.priceTime  = realtime ? data.updateTime : data.tradeDate;
+          if (data.name) stock.name = data.name;
+        } else {
+          alert(`股票 ${stock.code}：${data.error || '未能取得價格'}\n（${realtime ? '即時報價' : '收市價數據日期'}：${data.updateTime || data.tradeDate || '未知'}）\n請確認股票代號正確（窩輪／牛熊證等不適用）。`);
+          return;
+        }
+      } catch {
+        alert(`股票 ${stock.code}：查詢${realtime ? '即時價' : '收市價'}失敗，請稍後再試。`);
+        return;
+      }
+    }
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = origText; }
+  }
+
+  const results = [];
+  for (let i = 0; i < calcStocks.length; i++) {
+    const stock = calcStocks[i];
+    if (stock.mode === 'normal') {
+      const { lotSize, shares: total, closePrice } = stock;
+      const whole       = Math.floor(total / lotSize);
+      const frac        = total % lotSize;
+      const marketValue = r2(closePrice * total);
+      const hkscc       = r2(marketValue * CALC_HKSCC_RATE);
+      const coBase      = r2(marketValue * CALC_CO_RATE);
+      const fracFee     = frac > 0 ? CALC_FRAC_FEE : 0;
+      const coRaw       = r2(coBase + fracFee);
+      const rawTotal    = r2(hkscc + coRaw);
+      const grand       = Math.max(CALC_MIN_TOTAL, rawTotal);
+      results.push({ stock, total, whole, frac, marketValue, closePrice, closeDate: stock.closeDate, priceKind: stock.priceKind, priceTime: stock.priceTime, hkscc, coBase, coRaw, fracFee, rawTotal, grand, minApplied: rawTotal < CALC_MIN_TOTAL, mode: 'normal' });
+    } else {
+      const nCerts   = stock.certShares.length;
+      const total    = stock.certShares.reduce((a, b) => a + b, 0);
+      const lotSize  = stock.lotSize;
+      const whole    = Math.floor(total / lotSize);
+      const frac     = total % lotSize;
+      const marketValue = r2(stock.closePrice * total);
+      const hkscc    = r2(marketValue * CALC_HKSCC_RATE);
+      const coBase   = r2(marketValue * CALC_CO_RATE);
+      const extra    = Math.max(0, nCerts - CALC_FREE_CERTS);
+      const admin    = extra * CALC_SPLIT_ADMIN;
+      const fracCerts = stock.certShares.filter(s => s % lotSize > 0).length;
+      const fracFee  = fracCerts * CALC_FRAC_FEE;
+      const coRaw    = r2(coBase + admin + fracFee);
+      const rawTotal = r2(hkscc + coRaw);
+      const grand    = Math.max(CALC_MIN_TOTAL, rawTotal);
+      results.push({ stock, total, whole, frac, marketValue, closePrice: stock.closePrice, closeDate: stock.closeDate, priceKind: stock.priceKind, priceTime: stock.priceTime, hkscc, coBase, coRaw, fracFee, fracCerts, rawTotal, grand, minApplied: rawTotal < CALC_MIN_TOTAL, mode: 'split', nCerts, extra, admin, certShares: stock.certShares });
+    }
+  }
+  calcResults = results;
+  renderCalcResults(results);
+}
+
+// 舊收費計算：HKSCC 每手 HK$3.50 ＋ 富途每手 HK$1.50（富途部分最低 HK$500），碎股作一手計 —— 適用至 2026年11月11日
+function runOldFeeCalc() {
+  const results = [];
+  for (let i = 0; i < calcStocks.length; i++) {
+    const stock = calcStocks[i];
+    if (stock.mode === 'normal') {
       const { lotSize, shares: total } = stock;
       const whole     = Math.floor(total / lotSize);
       const frac      = total % lotSize;
@@ -895,10 +1090,8 @@ function calcRunAll() {
       const fracFee   = frac > 0 ? CALC_FRAC_FEE : 0;
       const coRaw     = coBase + fracFee;
       const coFee     = Math.max(CALC_CO_MIN, coRaw);
-      results.push({ stock, total, whole, frac, totalLots, hkscc, coBase, coRaw, coFee, fracFee, grand: hkscc + coFee, mode: 'normal' });
+      results.push({ stock, total, whole, frac, totalLots, hkscc, coBase, coRaw, coFee, fracFee, grand: hkscc + coFee, minApplied: coFee > coRaw, feeVersion: 'old', mode: 'normal' });
     } else {
-      if (!stock.certShares || stock.certShares.length === 0) { alert(`股票 #${i+1}：請先輸入分拆張數並點擊「確認」`); return; }
-      if (stock.certShares.some(s => !s || s < 1)) { alert(`股票 #${i+1}：請填入所有分拆張數的股數`); return; }
       const nCerts   = stock.certShares.length;
       const total    = stock.certShares.reduce((a, b) => a + b, 0);
       const lotSize  = stock.lotSize;
@@ -913,7 +1106,7 @@ function calcRunAll() {
       const fracFee  = fracCerts * CALC_FRAC_FEE;
       const coRaw    = coPerLot + admin + fracFee;
       const coFee    = Math.max(CALC_CO_MIN, coRaw);
-      results.push({ stock, total, whole, frac, totalLots, hkscc, coRaw, coFee, fracFee, fracCerts, grand: hkscc + coFee, mode: 'split', nCerts, extra, admin, coPerLot, certShares: stock.certShares });
+      results.push({ stock, total, whole, frac, totalLots, hkscc, coPerLot, coRaw, coFee, fracFee, fracCerts, grand: hkscc + coFee, minApplied: coFee > coRaw, feeVersion: 'old', mode: 'split', nCerts, extra, admin, certShares: stock.certShares });
     }
   }
   calcResults = results;
@@ -921,6 +1114,58 @@ function calcRunAll() {
 }
 
 function buildInlineFeeHtml(r) {
+  if (r.feeVersion === 'old') return buildInlineFeeHtmlOld(r);
+  const label = r.stock.code ? `${r.stock.code}${r.stock.name ? ` ${r.stock.name}` : ''}` : '';
+  let body = '';
+
+  if (r.mode === 'split' && r.certShares) {
+    const certRows = r.certShares.map((s, i) =>
+      `<tr><td>第 ${i+1} 張</td><td style="text-align:right;">${s.toLocaleString()} 股</td></tr>`
+    ).join('');
+    body += `<div class="calc-section">
+      <div class="calc-section-title">拆細明細
+        <button class="calc-detail-toggle" onclick="calcToggleCertDetail(this)">顯示明細</button>
+      </div>
+      <div style="display:none; margin-bottom:8px;"><table class="calc-detail-table">${certRows}</table></div>
+      <div class="calc-row"><span>分拆總張數</span><span>${r.nCerts} 張</span></div>
+      <div class="calc-row subtotal"><span>總提取股數</span><span>${r.total.toLocaleString()} 股</span></div>
+    </div>`;
+  }
+
+  body += `<div class="calc-section">
+    <div class="calc-section-title">股票明細</div>
+    ${r.mode === 'normal' ? `<div class="calc-row"><span>提取股數</span><span>${r.total.toLocaleString()} 股</span></div>` : ''}
+    <div class="calc-row"><span>每手股數</span><span>${r.stock.lotSize.toLocaleString()} 股</span></div>
+    <div class="calc-row"><span>整手數</span><span>${r.whole.toLocaleString()} 手</span></div>
+    ${r.frac > 0 ? `<div class="calc-row"><span>碎股</span><span>${r.frac.toLocaleString()} 股</span></div>` : ''}
+  </div>
+  <div class="calc-section">
+    <div class="calc-section-title">${r.priceKind === 'realtime' ? `收費基準（即時價 ${r.priceTime}，延遲約15分鐘）` : `收費基準（${r.closeDate} 收市價）`}</div>
+    <div class="calc-row"><span>${r.priceKind === 'realtime' ? '即時價' : '收市價'}</span><span>HK$${r.closePrice}</span></div>
+    <div class="calc-row subtotal"><span>市值（${r.total.toLocaleString()} 股 × HK$${r.closePrice}）</span><span>HK$${r.marketValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
+    ${r.priceKind === 'realtime' ? '<div style="font-size:12px; color:#FA8C16; margin-top:6px;">⚠ 即時價為延遲約15分鐘報價，只作預估；實際收費以申請日前一交易日收市價計算</div>' : ''}
+  </div>
+  <div class="calc-section">
+    <div class="calc-section-title">中央結算費用（HKSCC）</div>
+    <div class="calc-row"><span>市值 × 0.015%</span><span>HK$${r.hkscc.toFixed(2)}</span></div>
+  </div>
+  <div class="calc-section">
+    <div class="calc-section-title">富途證券手續費</div>
+    <div class="calc-row"><span>市值 × 0.015%</span><span>HK$${r.coBase.toFixed(2)}</span></div>
+    ${r.mode === 'split' && r.extra > 0 ? `<div class="calc-row"><span>拆細行政費 第1-${r.nCerts}張 × HK$100（共${r.extra}張）</span><span>HK$${r.admin.toFixed(2)}</span></div>` : ''}
+    ${r.fracFee > 0 ? `<div class="calc-row"><span>碎股附加費${r.mode === 'split' && r.fracCerts > 1 ? ` (${r.fracCerts} 張 × HK$100)` : ''}</span><span>HK$${r.fracFee.toFixed(2)}</span></div>` : ''}
+    <div class="calc-row subtotal"><span>富途證券手續費合計</span><span>HK$${r.coRaw.toFixed(2)}</span></div>
+  </div>
+  ${r.minApplied ? `<div class="calc-row adjusted" style="margin-bottom:8px;"><span>↑ 適用最低收費（所有項目總和）</span><span>HK$${CALC_MIN_TOTAL.toFixed(2)}</span></div>` : ''}
+  <div class="calc-total" style="font-size:14px;background:var(--bg2);color:var(--text1);">
+    <span>小計${label ? `（${label}）` : ''}</span><span>HK$${r.grand.toFixed(2)}</span>
+  </div>`;
+
+  return `<div class="card-header"><span>費用明細</span></div>
+          <div class="card-body">${body}</div>`;
+}
+
+function buildInlineFeeHtmlOld(r) {
   const coPerLot = r.mode === 'split' ? r.coPerLot : r.coBase;
   const label = r.stock.code ? `${r.stock.code}${r.stock.name ? ` ${r.stock.name}` : ''}` : '';
   let body = '';
@@ -963,7 +1208,7 @@ function buildInlineFeeHtml(r) {
     <span>小計${label ? `（${label}）` : ''}</span><span>HK$${r.grand.toFixed(2)}</span>
   </div>`;
 
-  return `<div class="card-header"><span>費用明細</span></div>
+  return `<div class="card-header"><span>費用明細（舊收費）</span></div>
           <div class="card-body">${body}</div>`;
 }
 
@@ -996,9 +1241,9 @@ async function calcCopyResults() {
   const lines = [];
   calcResults.forEach((r, idx) => {
     if (calcResults.length > 1) lines.push(`【股票 ${idx+1}：${r.stock.code}${r.stock.name ? ` ${r.stock.name}` : ''}】`);
-    lines.push(r.mode === 'normal'
-      ? calcBuildPlainNormal(r.total, r.stock.lotSize, r.whole, r.frac, r.totalLots, r.hkscc, r.coBase, r.coRaw, r.coFee, r.fracFee, r.grand)
-      : calcBuildPlainSplit(r.total, r.stock.lotSize, r.whole, r.frac, r.totalLots, r.nCerts, r.extra, r.hkscc, r.coPerLot, r.admin, r.coRaw, r.coFee, r.fracFee, r.grand, r.certShares));
+    lines.push(r.feeVersion === 'old'
+      ? (r.mode === 'normal' ? calcBuildPlainNormalOld(r) : calcBuildPlainSplitOld(r))
+      : (r.mode === 'normal' ? calcBuildPlainNormal(r) : calcBuildPlainSplit(r)));
   });
   if (calcResults.length > 1) {
     lines.push('='.repeat(38), `總費用合計   : HK$${calcResults.reduce((s,r) => s+r.grand, 0).toFixed(2)}`, '='.repeat(38));
@@ -1024,6 +1269,12 @@ function calcGenerateEmail() {
   }
   const feeBlock = feeLines.join('<br/>');
 
+  const feeDescHtml = calcFeeVersion === 'old'
+    ? `1.&nbsp;&nbsp;&nbsp;&nbsp;富途證券手續費（每隻股票每手港幣1.50元，非整手碎股或特別要求拆細提取則收取每張100元行政費，每隻股票提取申請最低收費為港幣500元）及<br/>
+2.&nbsp;&nbsp;&nbsp;&nbsp;香港中央結算有限公司收費（每隻每手股票港幣3.50元，碎股亦視作一手）。<br/>`
+    : `1.&nbsp;&nbsp;&nbsp;&nbsp;富途證券手續費（按申請日前一個交易日之收市價市值0.015%計算，非整手碎股或特別要求拆細提取則收取每張100元行政費，每隻股票提取申請所有項目總和最低收費為港幣500元）及<br/>
+2.&nbsp;&nbsp;&nbsp;&nbsp;香港中央結算有限公司收費（按申請日前一個交易日之收市價市值0.015%計算）。<br/>`;
+
   const emailHtml = `<div style="font-family:sans-serif;line-height:1.6;color:#1A1A1A;max-width:700px;">
 <img src="${FUTU_LOGO_B64}" style="height:38px;display:block;margin-bottom:16px;" />
 尊敬的客戶：<br/>
@@ -1032,12 +1283,11 @@ function calcGenerateEmail() {
 <br/>
 <br/>
 有關提取實物股票之收費包括:<br/>
-1.&nbsp;&nbsp;&nbsp;&nbsp;富途證券手續費（每隻股票每手港幣1.50元，非整手碎股或特別要求拆細提取則收取每張100元行政費，每隻股票提取申請最低收費為港幣500元）及<br/>
-2.&nbsp;&nbsp;&nbsp;&nbsp;香港中央結算有限公司收費（每隻每手股票港幣3.50元，碎股亦視作一手）。<br/>
+${feeDescHtml}
 <br/>
 <br/>
 <br/>
-<strong>是次申請費用預算如下：</strong><br/>
+<strong>是次申請費用預算如下：</strong>${calcResults.some(r => r.priceKind === 'realtime') ? '<br/><span style="font-size:12px;color:#FA8C16;">（以 etnet 即時價預估，延遲約15分鐘；實際收費以申請日前一交易日收市價計算）</span>' : ''}<br/>
 ${feeBlock}<br/>
 <br/>
 <br/>
@@ -1120,7 +1370,7 @@ async function calcConfirmApply() {
           total_shares: r.total,
           total_fee: r.grand,
           hkscc_fee: r.hkscc,
-          company_fee: r.coFee
+          company_fee: r.feeVersion === 'old' ? r.coFee : r.coRaw
         })
       });
       const data = await res.json();
@@ -1162,45 +1412,389 @@ function calcClearAll() {
   document.getElementById('calcEmailBtn').style.display = 'none';
 }
 
-function calcBuildPlainNormal(total, lotSize, whole, frac, totalLots, hkscc, coBase, coRaw, coFee, fracFee, grand) {
+function calcBuildPlainNormal(r) {
   const lines = ['一般提取收費明細', '='.repeat(38),
-    `提取股數     : ${total.toLocaleString()} 股`,
-    `每手股數     : ${lotSize.toLocaleString()} 股`,
-    `整手數       : ${whole.toLocaleString()} 手`,
+    `提取股數     : ${r.total.toLocaleString()} 股`,
+    `每手股數     : ${r.stock.lotSize.toLocaleString()} 股`,
+    `整手數       : ${r.whole.toLocaleString()} 手`,
   ];
-  if (frac > 0) lines.push(`碎股（作一手）: ${frac.toLocaleString()} 股`);
-  lines.push(`收費手數     : ${totalLots.toLocaleString()} 手`, '-'.repeat(38),
-    `中央結算費用 : ${totalLots}手 × $3.50 = HK$${hkscc.toFixed(2)}`, '-'.repeat(38),
-    `我司每手費   : ${totalLots}手 × $1.50 = HK$${coBase.toFixed(2)}`);
-  if (fracFee > 0) lines.push(`碎股附加費   : HK$100.00`);
-  if (coFee > coRaw) lines.push(`（適用最低收費）         = HK$${coFee.toFixed(2)}`);
-  lines.push(`富途證券手續費合計 : HK$${coFee.toFixed(2)}`);
-  lines.push('='.repeat(38), `總費用       : HK$${grand.toFixed(2)}`, '='.repeat(38));
+  if (r.frac > 0) lines.push(`碎股         : ${r.frac.toLocaleString()} 股`);
+  lines.push(`${r.priceKind === 'realtime' ? `即時價 (${r.priceTime})` : `收市價 (${r.closeDate})`} : HK$${r.closePrice}`,
+    `市值         : ${r.total.toLocaleString()} 股 × HK$${r.closePrice} = HK$${r.marketValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    '-'.repeat(38),
+    `中央結算費用 : 市值 × 0.015% = HK$${r.hkscc.toFixed(2)}`,
+    '-'.repeat(38),
+    `我司手續費   : 市值 × 0.015% = HK$${r.coBase.toFixed(2)}`);
+  if (r.fracFee > 0) lines.push(`碎股附加費   : HK$${r.fracFee.toFixed(2)}`);
+  lines.push(`富途證券手續費合計 : HK$${r.coRaw.toFixed(2)}`);
+  if (r.minApplied) lines.push(`↑ 適用最低收費（所有項目總和 HK$${CALC_MIN_TOTAL.toFixed(2)}）`);
+  if (r.priceKind === 'realtime') lines.push('※ 即時價為延遲約15分鐘報價，只作預估');
+  lines.push('='.repeat(38), `總費用       : HK$${r.grand.toFixed(2)}`, '='.repeat(38));
   return lines.join('\n');
 }
 
-function calcBuildPlainSplit(total, lotSize, whole, frac, totalLots, nCerts, extra, hkscc, coPerLot, admin, coRaw, coFee, fracFee, grand, certShares) {
+function calcBuildPlainSplit(r) {
   const lines = ['特別拆細提取收費明細', '='.repeat(38)];
-  if (certShares && certShares.length) {
+  if (r.certShares && r.certShares.length) {
     lines.push('拆細明細：');
-    certShares.forEach((s, i) => lines.push(`  第${i+1}張 : ${s.toLocaleString()} 股`));
+    r.certShares.forEach((s, i) => lines.push(`  第${i+1}張 : ${s.toLocaleString()} 股`));
   }
-  lines.push(`分拆總張數   : ${nCerts} 張`, `總提取股數   : ${total.toLocaleString()} 股`, '-'.repeat(38),
-    `每手股數     : ${lotSize.toLocaleString()} 股`,
-    `整手數       : ${whole.toLocaleString()} 手`);
-  if (frac > 0) lines.push(`碎股（作一手）: ${frac.toLocaleString()} 股`);
-  lines.push(`HKSCC收費手數: ${totalLots.toLocaleString()} 手`, '-'.repeat(38),
-    `中央結算費用 : ${totalLots}手 × $3.50 = HK$${hkscc.toFixed(2)}`, '-'.repeat(38),
-    `我司每手費   : ${totalLots}手 × $1.50 = HK$${coPerLot.toFixed(2)}`);
-  if (extra > 0) lines.push(`拆細行政費   : ${extra}張 × $100 = HK$${admin.toFixed(2)}`);
-  if (fracFee > 0) {
-    const fracCertsCount = certShares ? certShares.filter(s => s % lotSize > 0).length : 0;
-    lines.push(`碎股附加費   : ${fracCertsCount > 1 ? `${fracCertsCount}張 × $100 = ` : ''}HK$${fracFee.toFixed(2)}`);
+  lines.push(`分拆總張數   : ${r.nCerts} 張`, `總提取股數   : ${r.total.toLocaleString()} 股`, '-'.repeat(38),
+    `每手股數     : ${r.stock.lotSize.toLocaleString()} 股`,
+    `整手數       : ${r.whole.toLocaleString()} 手`);
+  if (r.frac > 0) lines.push(`碎股         : ${r.frac.toLocaleString()} 股`);
+  lines.push(`${r.priceKind === 'realtime' ? `即時價 (${r.priceTime})` : `收市價 (${r.closeDate})`} : HK$${r.closePrice}`,
+    `市值         : ${r.total.toLocaleString()} 股 × HK$${r.closePrice} = HK$${r.marketValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    '-'.repeat(38),
+    `中央結算費用 : 市值 × 0.015% = HK$${r.hkscc.toFixed(2)}`,
+    '-'.repeat(38),
+    `我司手續費   : 市值 × 0.015% = HK$${r.coBase.toFixed(2)}`);
+  if (r.extra > 0) lines.push(`拆細行政費   : ${r.extra}張 × $100 = HK$${r.admin.toFixed(2)}`);
+  if (r.fracFee > 0) {
+    lines.push(`碎股附加費   : ${r.fracCerts > 1 ? `${r.fracCerts}張 × $100 = ` : ''}HK$${r.fracFee.toFixed(2)}`);
   }
-  if (coFee > coRaw) lines.push(`（適用最低收費）         = HK$${coFee.toFixed(2)}`);
-  lines.push(`富途證券手續費合計 : HK$${coFee.toFixed(2)}`);
-  lines.push('='.repeat(38), `總費用       : HK$${grand.toFixed(2)}`, '='.repeat(38));
+  lines.push(`富途證券手續費合計 : HK$${r.coRaw.toFixed(2)}`);
+  if (r.minApplied) lines.push(`↑ 適用最低收費（所有項目總和 HK$${CALC_MIN_TOTAL.toFixed(2)}）`);
+  if (r.priceKind === 'realtime') lines.push('※ 即時價為延遲約15分鐘報價，只作預估');
+  lines.push('='.repeat(38), `總費用       : HK$${r.grand.toFixed(2)}`, '='.repeat(38));
   return lines.join('\n');
+}
+
+function calcBuildPlainNormalOld(r) {
+  const lines = ['一般提取收費明細（舊收費）', '='.repeat(38),
+    `提取股數     : ${r.total.toLocaleString()} 股`,
+    `每手股數     : ${r.stock.lotSize.toLocaleString()} 股`,
+    `整手數       : ${r.whole.toLocaleString()} 手`,
+  ];
+  if (r.frac > 0) lines.push(`碎股（作一手）: ${r.frac.toLocaleString()} 股`);
+  lines.push(`收費手數     : ${r.totalLots.toLocaleString()} 手`, '-'.repeat(38),
+    `中央結算費用 : ${r.totalLots}手 × $3.50 = HK$${r.hkscc.toFixed(2)}`, '-'.repeat(38),
+    `我司每手費   : ${r.totalLots}手 × $1.50 = HK$${r.coBase.toFixed(2)}`);
+  if (r.fracFee > 0) lines.push(`碎股附加費   : HK$100.00`);
+  if (r.coFee > r.coRaw) lines.push(`（適用最低收費）         = HK$${r.coFee.toFixed(2)}`);
+  lines.push(`富途證券手續費合計 : HK$${r.coFee.toFixed(2)}`);
+  lines.push('='.repeat(38), `總費用       : HK$${r.grand.toFixed(2)}`, '='.repeat(38));
+  return lines.join('\n');
+}
+
+function calcBuildPlainSplitOld(r) {
+  const lines = ['特別拆細提取收費明細（舊收費）', '='.repeat(38)];
+  if (r.certShares && r.certShares.length) {
+    lines.push('拆細明細：');
+    r.certShares.forEach((s, i) => lines.push(`  第${i+1}張 : ${s.toLocaleString()} 股`));
+  }
+  lines.push(`分拆總張數   : ${r.nCerts} 張`, `總提取股數   : ${r.total.toLocaleString()} 股`, '-'.repeat(38),
+    `每手股數     : ${r.stock.lotSize.toLocaleString()} 股`,
+    `整手數       : ${r.whole.toLocaleString()} 手`);
+  if (r.frac > 0) lines.push(`碎股（作一手）: ${r.frac.toLocaleString()} 股`);
+  lines.push(`HKSCC收費手數: ${r.totalLots.toLocaleString()} 手`, '-'.repeat(38),
+    `中央結算費用 : ${r.totalLots}手 × $3.50 = HK$${r.hkscc.toFixed(2)}`, '-'.repeat(38),
+    `我司每手費   : ${r.totalLots}手 × $1.50 = HK$${r.coPerLot.toFixed(2)}`);
+  if (r.extra > 0) lines.push(`拆細行政費   : ${r.extra}張 × $100 = HK$${r.admin.toFixed(2)}`);
+  if (r.fracFee > 0) {
+    const fracCertsCount = r.certShares ? r.certShares.filter(s => s % r.stock.lotSize > 0).length : 0;
+    lines.push(`碎股附加費   : ${fracCertsCount > 1 ? `${fracCertsCount}張 × $100 = ` : ''}HK$${r.fracFee.toFixed(2)}`);
+  }
+  if (r.coFee > r.coRaw) lines.push(`（適用最低收費）         = HK$${r.coFee.toFixed(2)}`);
+  lines.push(`富途證券手續費合計 : HK$${r.coFee.toFixed(2)}`);
+  lines.push('='.repeat(38), `總費用       : HK$${r.grand.toFixed(2)}`, '='.repeat(38));
+  return lines.join('\n');
+}
+
+// ===== 存入實物股票收費計算（公用版） =====
+// 釐印費 HK$5/張；無紙化費 HK$5/張（最低 HK$20，只限參與證券）；轉讓與登記費 市值×0.02%（最低 HK$20，每隻股票計）
+// 市值 = 前一交易日收市價 × 總股數
+let depStocks = [];
+let depIdSeq = 0;
+let depResults = null;
+let depRunning = false;
+let depPriceSource = 'close'; // 'close' = 前一交易日收市價（正式）；'realtime' = etnet 即時價（預估）
+
+function depAddStock() {
+  depIdSeq += 1;
+  depStocks.push({ id: depIdSeq, code: '', name: '', secType: 'part', nCerts: null, nDeeds: null, totalShares: null, closePrice: null, closeDate: null, priceKind: null, priceTime: null });
+  renderDepStocks();
+}
+
+function depRemoveStock(id) {
+  if (depStocks.length <= 1) return;
+  depStocks = depStocks.filter(s => s.id !== id);
+  if (depResults) {
+    delete depResults[id];
+    if (Object.keys(depResults).length === 0) depResults = null;
+  }
+  renderDepStocks();
+  depUpdateTotalBar();
+}
+
+function depClearAll() {
+  depStocks = [];
+  depResults = null;
+  depAddStock();
+  depUpdateTotalBar();
+}
+
+function depUpdateField(id, field, value) {
+  const s = depStocks.find(x => x.id === id);
+  if (!s) return;
+  if (field === 'code') {
+    s.code = value.trim();
+    s.name = ''; s.closePrice = null; s.closeDate = null; s.priceKind = null; s.priceTime = null;
+    if (depResults && depResults[id]) { delete depResults[id]; renderDepStocks(); depUpdateTotalBar(); }
+    return;
+  }
+  s[field] = parseInt(value, 10) || null;
+  if (s.closePrice && depResults && depResults[id]) {
+    depResults[id] = depCalcStock(s);
+    renderDepStocks();
+    depUpdateTotalBar();
+  }
+}
+
+function depSetType(id, value) {
+  const s = depStocks.find(x => x.id === id);
+  if (!s) return;
+  s.secType = value;
+  if (depResults && depResults[id]) {
+    depResults[id] = depCalcStock(s);
+    renderDepStocks();
+    depUpdateTotalBar();
+  }
+}
+
+function depCalcStock(s) {
+  if (!s.closePrice || !s.totalShares || !s.nDeeds) return null;
+  const r2 = v => Math.round(v * 100) / 100;
+  const part = s.secType === 'part';
+  const marketValue = r2(s.closePrice * s.totalShares);
+  const stamp = r2(s.nDeeds * 5);
+  const dematRaw = r2(s.nCerts * 5);
+  const demat = part ? Math.max(20, dematRaw) : 0;
+  const regRaw = r2(marketValue * 0.0002);
+  const reg = Math.max(20, regRaw);
+  return {
+    id: s.id, code: s.code, name: s.name, part, nCerts: s.nCerts, nDeeds: s.nDeeds, totalShares: s.totalShares,
+    closePrice: s.closePrice, closeDate: s.closeDate, priceKind: s.priceKind, priceTime: s.priceTime, marketValue,
+    stamp, dematRaw, demat, minDemat: part && dematRaw < 20,
+    regRaw, reg, minReg: regRaw < 20,
+    total: r2(stamp + demat + reg)
+  };
+}
+
+const DEP_INPUT_IDS = { code: 'depCode', nCerts: 'depCerts', nDeeds: 'depDeeds', totalShares: 'depShares' };
+
+function depEnterNav(e, id, field) {
+  if (e.key !== 'Enter' || e.repeat) return;
+  e.preventDefault();
+  const order = ['code', 'secType', 'nCerts', 'nDeeds', 'totalShares'];
+  const idx = depStocks.findIndex(s => s.id === id);
+  if (idx === -1) return;
+  const pos = order.indexOf(field);
+  for (let p = pos + 1; p < order.length; p++) {
+    let el = null;
+    if (order[p] === 'secType') el = document.querySelector(`input[name="depType_${id}"]`);
+    else el = document.getElementById(`${DEP_INPUT_IDS[order[p]]}_${id}`);
+    if (el) { el.focus(); if (el.type === 'text' || el.type === 'number') el.select(); return; }
+  }
+  if (idx < depStocks.length - 1) {
+    const el = document.getElementById(`depCode_${depStocks[idx + 1].id}`);
+    if (el) { el.focus(); el.select(); return; }
+  }
+  depRunAll();
+}
+
+async function depRunAll() {
+  if (depRunning) return;
+  for (let i = 0; i < depStocks.length; i++) {
+    const s = depStocks[i];
+    if (!s.code || !/^\d+$/.test(s.code)) { alert(`股票 #${i+1}：請輸入有效股票代號（純數字）`); return; }
+    if (!s.nDeeds || s.nDeeds < 1) { alert(`股票 #${i+1}：請輸入轉手紙張數`); return; }
+    if (s.secType === 'part' && (!s.nCerts || s.nCerts < 1)) { alert(`股票 #${i+1}：請輸入證書張數`); return; }
+    if (!s.totalShares || s.totalShares < 1) { alert(`股票 #${i+1}：請輸入總股數`); return; }
+  }
+  const btn = document.getElementById('depRunBtn');
+  const origText = btn.textContent;
+  const realtime = depPriceSource === 'realtime';
+  depRunning = true;
+  btn.disabled = true; btn.textContent = realtime ? '查詢即時價中…' : '查詢收市價中…';
+  try {
+    for (const s of depStocks) {
+      if (s.closePrice) continue;
+      try {
+        const resp = await fetch(realtime ? `/api/realtime-price/${parseInt(s.code, 10)}` : `/api/close-price/${parseInt(s.code, 10)}`);
+        const data = await resp.json();
+        const price = realtime ? data.price : data.closePrice;
+        if (price) {
+          s.closePrice = price;
+          s.closeDate  = realtime ? null : data.tradeDate;
+          s.priceKind  = realtime ? 'realtime' : 'close';
+          s.priceTime  = realtime ? data.updateTime : data.tradeDate;
+          if (data.name) s.name = data.name;
+        } else {
+          alert(`股票 ${s.code}：${data.error || '未能取得價格'}\n（${realtime ? '即時報價' : '收市價數據日期'}：${data.updateTime || data.tradeDate || '未知'}）\n請確認股票代號正確（窩輪／牛熊證等不適用）。`);
+          return;
+        }
+      } catch {
+        alert(`股票 ${s.code}：查詢${realtime ? '即時價' : '收市價'}失敗，請稍後再試。`);
+        return;
+      }
+    }
+    depResults = {};
+    depStocks.forEach(s => { const r = depCalcStock(s); if (r) depResults[s.id] = r; });
+    renderDepStocks();
+    depUpdateTotalBar();
+  } finally {
+    depRunning = false;
+    btn.disabled = false; btn.textContent = origText;
+  }
+}
+
+function renderDepStocks() {
+  const list = document.getElementById('depStockList');
+  if (!list) return;
+  list.innerHTML = depStocks.map((s, i) => {
+    const r = depResults && depResults[s.id];
+    return `
+    <div style="display:flex; gap:14px; margin-bottom:14px; align-items:flex-start; flex-wrap:wrap;">
+      <div class="card" style="width:350px; flex-shrink:0;">
+        <div class="card-header">
+          <span>股票 #${i + 1}${s.name ? `　${s.name}` : ''}</span>
+          ${depStocks.length > 1 ? `<button class="dep-icon-btn danger" title="移除此股票" onclick="depRemoveStock(${s.id})">−</button>` : ''}
+        </div>
+        <div class="card-body" style="display:flex; flex-direction:column; gap:12px;">
+          <div>
+            <label class="form-label">股票代號</label>
+            <input type="text" id="depCode_${s.id}" class="form-input" inputmode="numeric" placeholder="例：700" value="${s.code}"
+              oninput="depUpdateField(${s.id},'code',this.value)"
+              onkeydown="depEnterNav(event, ${s.id}, 'code')" />
+          </div>
+          <div>
+            <label class="form-label">證券類型</label>
+            <div style="display:flex; gap:8px;">
+              <label class="biz-option" style="flex:1; padding:8px 10px;"><input type="radio" name="depType_${s.id}" value="part" ${s.secType === 'part' ? 'checked' : ''} onchange="depSetType(${s.id},'part')" onkeydown="depEnterNav(event, ${s.id}, 'secType')"> 參與證券</label>
+              <label class="biz-option" style="flex:1; padding:8px 10px;"><input type="radio" name="depType_${s.id}" value="nonpart" ${s.secType === 'nonpart' ? 'checked' : ''} onchange="depSetType(${s.id},'nonpart')" onkeydown="depEnterNav(event, ${s.id}, 'secType')"> 非參與證券</label>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div>
+              <label class="form-label">證書張數</label>
+              <input type="number" id="depCerts_${s.id}" class="form-input" min="1" placeholder="實物股票證書" value="${s.nCerts ?? ''}"
+                oninput="depUpdateField(${s.id},'nCerts',this.value)"
+                onkeydown="depEnterNav(event, ${s.id}, 'nCerts')" />
+            </div>
+            <div>
+              <label class="form-label">轉手紙張數</label>
+              <input type="number" id="depDeeds_${s.id}" class="form-input" min="1" placeholder="轉手紙" value="${s.nDeeds ?? ''}"
+                oninput="depUpdateField(${s.id},'nDeeds',this.value)"
+                onkeydown="depEnterNav(event, ${s.id}, 'nDeeds')" />
+            </div>
+          </div>
+          <div>
+            <label class="form-label">總股數</label>
+            <input type="number" id="depShares_${s.id}" class="form-input" min="1" placeholder="全部股數" value="${s.totalShares ?? ''}"
+              oninput="depUpdateField(${s.id},'totalShares',this.value)"
+              onkeydown="depEnterNav(event, ${s.id}, 'totalShares')" />
+          </div>
+        </div>
+      </div>
+      <div style="flex:1; min-width:300px; max-width:520px;">
+        ${r ? buildDepResultHtml(r) : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function buildDepResultHtml(r) {
+  const typeLabel = r.part ? '參與證券' : '非參與證券';
+  return `
+  <div class="card">
+    <div class="card-header"><span>存入費用明細（${typeLabel}）</span></div>
+    <div class="card-body">
+      <div class="calc-section">
+        <div class="calc-section-title">${r.priceKind === 'realtime' ? `收費基準（即時價 ${r.priceTime}，延遲約15分鐘）` : `收費基準（${fmtDateDMY(r.closeDate)} 收市價）`}</div>
+        <div class="calc-row"><span>${r.priceKind === 'realtime' ? '即時價' : '收市價'}</span><span>HK$${r.closePrice.toFixed(2)}</span></div>
+        <div class="calc-row subtotal"><span>股份價值（${r.totalShares.toLocaleString()} 股 × HK$${r.closePrice.toFixed(2)}）</span><span>HK$${r.marketValue.toFixed(2)}</span></div>
+        ${r.priceKind === 'realtime' ? '<div style="font-size:12px; color:#FA8C16; margin-top:6px;">⚠ 即時價為延遲約15分鐘報價，只作預估；實際收費以申請日前一交易日收市價計算</div>' : ''}
+      </div>
+      <div class="calc-section">
+        <div class="calc-section-title">證書資料</div>
+        <div class="calc-row"><span>證券類型</span><span>${typeLabel}</span></div>
+        <div class="calc-row"><span>證書張數</span><span>${r.nCerts ? `${r.nCerts} 張` : '—'}</span></div>
+        <div class="calc-row"><span>轉手紙張數</span><span>${r.nDeeds} 張</span></div>
+        <div class="calc-row"><span>總股數</span><span>${r.totalShares.toLocaleString()} 股</span></div>
+      </div>
+      <div class="calc-section">
+        <div class="calc-section-title">費用</div>
+        <div class="calc-row"><span>① 政府轉手紙釐印費（${r.nDeeds} 張轉手紙 × HK$5.00）</span><span>HK$${r.stamp.toFixed(2)}</span></div>
+        ${r.part ? `
+        <div class="calc-row"><span>② 實物股票無紙化費用（${r.nCerts} 張證書 × HK$5.00）</span><span>HK$${r.dematRaw.toFixed(2)}</span></div>
+        ${r.minDemat ? '<div class="calc-row adjusted"><span>↑ 適用最低收費 HK$20.00</span><span>HK$20.00</span></div>' : ''}
+        <div class="calc-row subtotal"><span>② 無紙化費用合計</span><span>HK$${r.demat.toFixed(2)}</span></div>` : ''}
+        <div class="calc-row"><span>③ 轉讓與登記費（股份價值 × 0.02%）</span><span>HK$${r.regRaw.toFixed(2)}</span></div>
+        ${r.minReg ? '<div class="calc-row adjusted"><span>↑ 適用最低收費 HK$20.00</span><span>HK$20.00</span></div>' : ''}
+        <div class="calc-row subtotal"><span>③ 轉讓與登記費合計</span><span>HK$${r.reg.toFixed(2)}</span></div>
+      </div>
+      <div class="calc-total"><span>小計</span><span>HK$${r.total.toFixed(2)}</span></div>
+      <div style="font-size:12px; color:var(--text3); margin-top:6px;">所有費用以實際扣款為準</div>
+    </div>
+  </div>`;
+}
+
+function depUpdateTotalBar() {
+  const bar = document.getElementById('depTotalBar');
+  const amount = document.getElementById('depTotalBarAmount');
+  const copyBtn = document.getElementById('depCopyBtn');
+  if (!bar || !amount) return;
+  const vals = depResults ? Object.values(depResults) : [];
+  if (vals.length === 0) {
+    bar.style.display = 'none';
+    if (copyBtn) copyBtn.style.display = 'none';
+    return;
+  }
+  const total = vals.reduce((sum, r) => Math.round((sum + r.total) * 100) / 100, 0);
+  amount.textContent = `HK$${total.toFixed(2)}（${vals.length} 隻股票）`;
+  bar.style.display = 'flex';
+  if (copyBtn) copyBtn.style.display = '';
+}
+
+function depCopyResults() {
+  if (!depResults) return;
+  const vals = Object.values(depResults);
+  const lines = ['存入實物股票收費明細', '='.repeat(38)];
+  vals.forEach(r => {
+    lines.push(`股票          : ${r.code}${r.name ? ` ${r.name}` : ''}`);
+    lines.push(`證券類型      : ${r.part ? '參與證券' : '非參與證券'}`);
+    lines.push(`證書張數      : ${r.nCerts ? `${r.nCerts} 張` : '—'}`);
+    lines.push(`轉手紙張數    : ${r.nDeeds} 張`);
+    lines.push(`總股數        : ${r.totalShares.toLocaleString()} 股`);
+    lines.push(`${r.priceKind === 'realtime' ? `即時價 (${r.priceTime})` : `收市價 (${fmtDateDMY(r.closeDate)})`} : HK$${r.closePrice.toFixed(2)}`);
+    lines.push(`股份價值      : ${r.totalShares.toLocaleString()} 股 × HK$${r.closePrice.toFixed(2)} = HK$${r.marketValue.toFixed(2)}`);
+    lines.push('-'.repeat(38));
+    lines.push(`政府轉手紙釐印費   : ${r.nDeeds}張轉手紙 × HK$5.00 = HK$${r.stamp.toFixed(2)}`);
+    if (r.part) {
+      lines.push(`實物股票無紙化費用 : ${r.nCerts}張證書 × HK$5.00 = HK$${r.dematRaw.toFixed(2)}${r.minDemat ? `（適用最低收費）= HK$${r.demat.toFixed(2)}` : ''}`);
+    }
+    lines.push(`轉讓與登記費       : 股份價值 × 0.02% = HK$${r.regRaw.toFixed(2)}${r.minReg ? `（適用最低收費）= HK$${r.reg.toFixed(2)}` : ''}`);
+    lines.push('-'.repeat(38), `小計         : HK$${r.total.toFixed(2)}`, '='.repeat(38));
+  });
+  const total = vals.reduce((sum, r) => Math.round((sum + r.total) * 100) / 100, 0);
+  lines.push(`總費用       : HK$${total.toFixed(2)}`, '='.repeat(38));
+  lines.push('（所有費用以實際扣款為準）');
+  if (vals.some(r => r.priceKind === 'realtime')) lines.push('※ 即時價為延遲約15分鐘報價，只作預估；實際收費以申請日前一交易日收市價計算');
+  navigator.clipboard.writeText(lines.join('\n')).then(() => {
+    const btn = document.getElementById('depCopyBtn');
+    if (btn) { const t = btn.textContent; btn.textContent = '✓ 已複製'; setTimeout(() => { btn.textContent = t; }, 1500); }
+  }).catch(() => alert('複製失敗，請手動選取文字複製'));
+}
+
+function openDepHelp() {
+  const el = document.getElementById('depHelpOverlay');
+  if (el) el.style.display = 'flex';
+}
+
+function closeDepHelp() {
+  const el = document.getElementById('depHelpOverlay');
+  if (el) el.style.display = 'none';
 }
 
 // ===== 多選刪除 =====
@@ -1261,6 +1855,7 @@ document.addEventListener('keydown', e => {
 });
 
 calcAddStock();
+depAddStock();
 initApp();
 
 document.getElementById('calcAccountInput').addEventListener('input', function () {

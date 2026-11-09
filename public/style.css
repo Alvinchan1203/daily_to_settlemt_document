@@ -62,8 +62,10 @@ body {
   background: #fff;
   border-bottom: 1px solid var(--border);
   padding: 0 32px;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto;
   position: relative;
+  overflow-x: auto;
 }
 
 .tab-item {
@@ -561,3 +563,28 @@ textarea.form-input {
 }
 
 .calc-detail-table td { padding: 2px 6px; color: var(--text2); }
+
+/* ===== 存入實物股票 +／- 按鈕 ===== */
+.dep-icon-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text2);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  padding: 0;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.dep-icon-btn.danger:hover { border-color: var(--red); color: var(--red); background: #FFF1F0; }
+
+.dep-icon-btn.primary { border-color: var(--blue); color: var(--blue); }
+.dep-icon-btn.primary:hover { background: var(--blue); color: #fff; }
