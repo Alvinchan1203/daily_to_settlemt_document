@@ -229,7 +229,7 @@
       </div>
       <div id="depPriceSourceToggle" style="display:flex; margin-bottom:10px; align-items:center; gap:0; border:1px solid var(--border); border-radius:8px; overflow:hidden; width:fit-content;">
         <button id="depSrcClose" type="button" style="padding:7px 16px; border:none; background:#1677FF; color:#fff; font-size:13px; cursor:pointer;" onclick="depSetPriceSource('close')">收市價·正式</button>
-        <button id="depSrcRealtime" type="button" style="padding:7px 16px; border:none; background:#fff; color:var(--text2); font-size:13px; cursor:pointer;" onclick="depSetPriceSource('realtime')">即時價·預估</button>
+        <button id="depSrcRealtime" type="button" style="padding:7px 16px; border:none; background:#fff; color:var(--text2); font-size:13px; cursor:pointer;" onclick="depSetPriceSource('realtime')">etnet 即時價·預估</button>
       </div>
       <div class="calc-outer">
         <div class="calc-wrap">
@@ -243,7 +243,7 @@
             <button class="btn-secondary" style="padding:9px 20px;" onclick="depClearAll()">清除全部</button>
             <button class="btn-secondary" style="padding:9px 14px;" onclick="openDepHelp()">收費說明</button>
           </div>
-          <div style="font-size:13px; color:#8C8C8C;">
+          <div id="depPriceNote" style="font-size:13px; color:#8C8C8C;">
             股份價值按<strong>申請日前一個交易日</strong>收市價計算（自動由港交所取得）。所有費用以實際扣款為準。
           </div>
         </div>
@@ -255,7 +255,7 @@
       <div id="calcVersionBanner" style="margin-bottom:10px; font-size:14px;"></div>
       <div id="calcPriceSourceToggle" style="display:none; margin-bottom:10px; align-items:center; gap:0; border:1px solid var(--border); border-radius:8px; overflow:hidden; width:fit-content;">
         <button id="calcSrcClose" type="button" style="padding:7px 16px; border:none; background:#1677FF; color:#fff; font-size:13px; cursor:pointer;" onclick="calcSetPriceSource('close')">收市價·正式</button>
-        <button id="calcSrcRealtime" type="button" style="padding:7px 16px; border:none; background:#fff; color:var(--text2); font-size:13px; cursor:pointer;" onclick="calcSetPriceSource('realtime')">即時價·預估</button>
+        <button id="calcSrcRealtime" type="button" style="padding:7px 16px; border:none; background:#fff; color:var(--text2); font-size:13px; cursor:pointer;" onclick="calcSetPriceSource('realtime')">etnet 即時價·預估</button>
       </div>
       <!-- 快速新增股票 -->
       <div style="margin-bottom:4px; display:flex; gap:8px; align-items:center;">

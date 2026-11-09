@@ -140,11 +140,18 @@ function updateCalcVersionBanner() {
 function applyPriceSourceBtn(prefix, v) {
   const on = document.getElementById(prefix + 'SrcClose');
   const off = document.getElementById(prefix + 'SrcRealtime');
-  if (!on || !off) return;
-  const active = { background: '#1677FF', color: '#fff' };
-  const idle = { background: '#fff', color: 'var(--text2)' };
-  if (v === 'close') { Object.assign(on.style, active); Object.assign(off.style, idle); }
-  else { Object.assign(off.style, active); Object.assign(on.style, idle); }
+  if (on && off) {
+    const active = { background: '#1677FF', color: '#fff' };
+    const idle = { background: '#fff', color: 'var(--text2)' };
+    if (v === 'close') { Object.assign(on.style, active); Object.assign(off.style, idle); }
+    else { Object.assign(off.style, active); Object.assign(on.style, idle); }
+  }
+  if (prefix === 'dep') {
+    const note = document.getElementById('depPriceNote');
+    if (note) note.innerHTML = v === 'realtime'
+      ? '股份價值按 <strong>etnet 即時價</strong>預估（延遲約15分鐘報價）；實際收費以申請日前一個交易日收市價計算。所有費用以實際扣款為準。'
+      : '股份價值按<strong>申請日前一個交易日</strong>收市價計算（自動由港交所取得）。所有費用以實際扣款為準。';
+  }
 }
 
 function calcSetPriceSource(v) {
@@ -1140,10 +1147,10 @@ function buildInlineFeeHtml(r) {
     ${r.frac > 0 ? `<div class="calc-row"><span>碎股</span><span>${r.frac.toLocaleString()} 股</span></div>` : ''}
   </div>
   <div class="calc-section">
-    <div class="calc-section-title">${r.priceKind === 'realtime' ? `收費基準（即時價 ${r.priceTime}，延遲約15分鐘）` : `收費基準（${r.closeDate} 收市價）`}</div>
-    <div class="calc-row"><span>${r.priceKind === 'realtime' ? '即時價' : '收市價'}</span><span>HK$${r.closePrice}</span></div>
+    <div class="calc-section-title">${r.priceKind === 'realtime' ? `收費基準（etnet 即時價 ${r.priceTime}，延遲約15分鐘）` : `收費基準（${r.closeDate} 收市價）`}</div>
+    <div class="calc-row"><span>${r.priceKind === 'realtime' ? '即時價（etnet）' : '收市價'}</span><span>HK$${r.closePrice}</span></div>
     <div class="calc-row subtotal"><span>市值（${r.total.toLocaleString()} 股 × HK$${r.closePrice}）</span><span>HK$${r.marketValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
-    ${r.priceKind === 'realtime' ? '<div style="font-size:12px; color:#FA8C16; margin-top:6px;">⚠ 即時價為延遲約15分鐘報價，只作預估；實際收費以申請日前一交易日收市價計算</div>' : ''}
+    ${r.priceKind === 'realtime' ? '<div style="font-size:12px; color:#FA8C16; margin-top:6px;">⚠ 即時價由 etnet 網站取得，為延遲約15分鐘報價，只作預估；實際收費以申請日前一交易日收市價計算</div>' : ''}
   </div>
   <div class="calc-section">
     <div class="calc-section-title">中央結算費用（HKSCC）</div>
@@ -1419,7 +1426,7 @@ function calcBuildPlainNormal(r) {
     `整手數       : ${r.whole.toLocaleString()} 手`,
   ];
   if (r.frac > 0) lines.push(`碎股         : ${r.frac.toLocaleString()} 股`);
-  lines.push(`${r.priceKind === 'realtime' ? `即時價 (${r.priceTime})` : `收市價 (${r.closeDate})`} : HK$${r.closePrice}`,
+  lines.push(`${r.priceKind === 'realtime' ? `即時價 etnet (${r.priceTime})` : `收市價 (${r.closeDate})`} : HK$${r.closePrice}`,
     `市值         : ${r.total.toLocaleString()} 股 × HK$${r.closePrice} = HK$${r.marketValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
     '-'.repeat(38),
     `中央結算費用 : 市值 × 0.015% = HK$${r.hkscc.toFixed(2)}`,
@@ -1428,7 +1435,7 @@ function calcBuildPlainNormal(r) {
   if (r.fracFee > 0) lines.push(`碎股附加費   : HK$${r.fracFee.toFixed(2)}`);
   lines.push(`富途證券手續費合計 : HK$${r.coRaw.toFixed(2)}`);
   if (r.minApplied) lines.push(`↑ 適用最低收費（所有項目總和 HK$${CALC_MIN_TOTAL.toFixed(2)}）`);
-  if (r.priceKind === 'realtime') lines.push('※ 即時價為延遲約15分鐘報價，只作預估');
+  if (r.priceKind === 'realtime') lines.push('※ 即時價由 etnet 取得，延遲約15分鐘，只作預估');
   lines.push('='.repeat(38), `總費用       : HK$${r.grand.toFixed(2)}`, '='.repeat(38));
   return lines.join('\n');
 }
@@ -1443,7 +1450,7 @@ function calcBuildPlainSplit(r) {
     `每手股數     : ${r.stock.lotSize.toLocaleString()} 股`,
     `整手數       : ${r.whole.toLocaleString()} 手`);
   if (r.frac > 0) lines.push(`碎股         : ${r.frac.toLocaleString()} 股`);
-  lines.push(`${r.priceKind === 'realtime' ? `即時價 (${r.priceTime})` : `收市價 (${r.closeDate})`} : HK$${r.closePrice}`,
+  lines.push(`${r.priceKind === 'realtime' ? `即時價 etnet (${r.priceTime})` : `收市價 (${r.closeDate})`} : HK$${r.closePrice}`,
     `市值         : ${r.total.toLocaleString()} 股 × HK$${r.closePrice} = HK$${r.marketValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
     '-'.repeat(38),
     `中央結算費用 : 市值 × 0.015% = HK$${r.hkscc.toFixed(2)}`,
@@ -1455,7 +1462,7 @@ function calcBuildPlainSplit(r) {
   }
   lines.push(`富途證券手續費合計 : HK$${r.coRaw.toFixed(2)}`);
   if (r.minApplied) lines.push(`↑ 適用最低收費（所有項目總和 HK$${CALC_MIN_TOTAL.toFixed(2)}）`);
-  if (r.priceKind === 'realtime') lines.push('※ 即時價為延遲約15分鐘報價，只作預估');
+  if (r.priceKind === 'realtime') lines.push('※ 即時價由 etnet 取得，延遲約15分鐘，只作預估');
   lines.push('='.repeat(38), `總費用       : HK$${r.grand.toFixed(2)}`, '='.repeat(38));
   return lines.join('\n');
 }
@@ -1711,10 +1718,10 @@ function buildDepResultHtml(r) {
     <div class="card-header"><span>存入費用明細（${typeLabel}）</span></div>
     <div class="card-body">
       <div class="calc-section">
-        <div class="calc-section-title">${r.priceKind === 'realtime' ? `收費基準（即時價 ${r.priceTime}，延遲約15分鐘）` : `收費基準（${fmtDateDMY(r.closeDate)} 收市價）`}</div>
-        <div class="calc-row"><span>${r.priceKind === 'realtime' ? '即時價' : '收市價'}</span><span>HK$${r.closePrice.toFixed(2)}</span></div>
+        <div class="calc-section-title">${r.priceKind === 'realtime' ? `收費基準（etnet 即時價 ${r.priceTime}，延遲約15分鐘）` : `收費基準（${fmtDateDMY(r.closeDate)} 收市價）`}</div>
+        <div class="calc-row"><span>${r.priceKind === 'realtime' ? '即時價（etnet）' : '收市價'}</span><span>HK$${r.closePrice.toFixed(2)}</span></div>
         <div class="calc-row subtotal"><span>股份價值（${r.totalShares.toLocaleString()} 股 × HK$${r.closePrice.toFixed(2)}）</span><span>HK$${r.marketValue.toFixed(2)}</span></div>
-        ${r.priceKind === 'realtime' ? '<div style="font-size:12px; color:#FA8C16; margin-top:6px;">⚠ 即時價為延遲約15分鐘報價，只作預估；實際收費以申請日前一交易日收市價計算</div>' : ''}
+        ${r.priceKind === 'realtime' ? '<div style="font-size:12px; color:#FA8C16; margin-top:6px;">⚠ 即時價由 etnet 網站取得，為延遲約15分鐘報價，只作預估；實際收費以申請日前一交易日收市價計算</div>' : ''}
       </div>
       <div class="calc-section">
         <div class="calc-section-title">證書資料</div>
@@ -1767,7 +1774,7 @@ function depCopyResults() {
     lines.push(`證書張數      : ${r.nCerts ? `${r.nCerts} 張` : '—'}`);
     lines.push(`轉手紙張數    : ${r.nDeeds} 張`);
     lines.push(`總股數        : ${r.totalShares.toLocaleString()} 股`);
-    lines.push(`${r.priceKind === 'realtime' ? `即時價 (${r.priceTime})` : `收市價 (${fmtDateDMY(r.closeDate)})`} : HK$${r.closePrice.toFixed(2)}`);
+    lines.push(`${r.priceKind === 'realtime' ? `即時價 etnet (${r.priceTime})` : `收市價 (${fmtDateDMY(r.closeDate)})`} : HK$${r.closePrice.toFixed(2)}`);
     lines.push(`股份價值      : ${r.totalShares.toLocaleString()} 股 × HK$${r.closePrice.toFixed(2)} = HK$${r.marketValue.toFixed(2)}`);
     lines.push('-'.repeat(38));
     lines.push(`政府轉手紙釐印費   : ${r.nDeeds}張轉手紙 × HK$5.00 = HK$${r.stamp.toFixed(2)}`);
@@ -1780,7 +1787,7 @@ function depCopyResults() {
   const total = vals.reduce((sum, r) => Math.round((sum + r.total) * 100) / 100, 0);
   lines.push(`總費用       : HK$${total.toFixed(2)}`, '='.repeat(38));
   lines.push('（所有費用以實際扣款為準）');
-  if (vals.some(r => r.priceKind === 'realtime')) lines.push('※ 即時價為延遲約15分鐘報價，只作預估；實際收費以申請日前一交易日收市價計算');
+  if (vals.some(r => r.priceKind === 'realtime')) lines.push('※ 即時價由 etnet 取得，延遲約15分鐘，只作預估；實際收費以申請日前一交易日收市價計算');
   navigator.clipboard.writeText(lines.join('\n')).then(() => {
     const btn = document.getElementById('depCopyBtn');
     if (btn) { const t = btn.textContent; btn.textContent = '✓ 已複製'; setTimeout(() => { btn.textContent = t; }, 1500); }
