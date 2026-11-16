@@ -589,3 +589,76 @@ textarea.form-input {
 
 .dep-icon-btn.primary { border-color: var(--blue); color: var(--blue); }
 .dep-icon-btn.primary:hover { background: var(--blue); color: #fff; }
+
+/* ===== 響應式版面 ===== */
+.input-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+
+  .top-bar { padding: 0 16px; }
+
+  /* 分頁列：橫向滑動 */
+  .tab-bar {
+    display: flex;
+    overflow-x: auto;
+    padding: 0 12px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .tab-bar::-webkit-scrollbar { display: none; }
+  .tab-bar > div { flex-shrink: 0; }
+  .tab-item { padding: 14px 12px; font-size: 13px; }
+
+  .main-content { padding: 16px 12px; }
+
+  /* 查詢每手／存款／計算機分頁喺 main-content 容器外，手機補返邊距 */
+  #tab-lot, #tab-deposit, #tab-calc { padding: 16px 12px; }
+
+  /* 輸入欄字體放大，避免 iPhone focus 時自動縮放 */
+  input, textarea, select { font-size: 16px; }
+  .form-input, #customRangeInputs input[type="date"] { font-size: 16px; }
+
+  /* 登記頁兩欄變單欄 */
+  .input-grid { grid-template-columns: 1fr; }
+
+  /* 匯總卡片 6 欄變 2 欄 */
+  .summary-grid { grid-template-columns: repeat(2, 1fr); }
+  .stat-num { font-size: 22px; }
+
+  /* 自訂範圍日期可換行 */
+  #customRangeInputs { flex-wrap: wrap; }
+
+  /* 表格：欄位縮窄＋費用紀錄表橫向捲動 */
+  .futu-table thead th, .futu-table td { padding: 10px 10px; }
+  #feeTableWrapper { overflow-x: auto; }
+  #feeTableWrapper .futu-table { min-width: 880px; }
+
+  /* 收費計算機：股票卡與費用明細上下排 */
+  .calc-outer { flex-direction: column; }
+  .calc-results-panel { width: 100%; position: static; }
+  .calc-quick-row, .calc-actions, .dep-actions { flex-wrap: wrap; }
+
+  .calc-stocks-row { flex-direction: column; align-items: stretch !important; }
+  .calc-stock-group { flex-direction: column; align-items: stretch !important; }
+  .calc-stock-card { flex: 0 0 auto !important; }
+  .calc-fee-inline { min-width: 0 !important; max-width: none !important; }
+
+  /* 存款計算機：股票卡與費用明細上下排 */
+  .dep-stock-card { width: auto !important; flex: 1 1 100% !important; }
+  .dep-fee-inline { min-width: 0 !important; max-width: none !important; }
+
+  /* 登入框：貼合細螢幕 */
+  #loginOverlay > div { width: min(320px, calc(100vw - 48px)) !important; }
+}

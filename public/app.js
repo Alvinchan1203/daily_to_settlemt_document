@@ -671,22 +671,24 @@ function renderCalcStocks() {
 
   for (let i = 0; i < calcStocks.length; i += 2) {
     const row = document.createElement('div');
+    row.className = 'calc-stocks-row';
     row.style.cssText = 'display:flex; gap:16px; align-items:flex-start;';
 
     for (let j = i; j < Math.min(i + 2, calcStocks.length); j++) {
       const stock = calcStocks[j];
       const group = document.createElement('div');
+      group.className = 'calc-stock-group';
       group.style.cssText = 'flex:1; min-width:0; display:flex; gap:10px; align-items:flex-start;';
 
       const stockDiv = document.createElement('div');
-      stockDiv.className = 'card';
+      stockDiv.className = 'card calc-stock-card';
       stockDiv.id = `calcStockCard_${stock.id}`;
       stockDiv.style.cssText = 'flex:0 0 350px; min-width:0;';
       stockDiv.innerHTML = buildStockCardHTML(stock, j);
 
       const feeDiv = document.createElement('div');
       feeDiv.id = `calcFeeInline_${stock.id}`;
-      feeDiv.className = 'card';
+      feeDiv.className = 'card calc-fee-inline';
       feeDiv.style.cssText = 'flex:1; min-width:200px; max-width:520px; display:none;';
 
       group.appendChild(stockDiv);
@@ -1769,8 +1771,8 @@ function renderDepStocks() {
   list.innerHTML = depStocks.map((s, i) => {
     const r = depResults && depResults[s.id];
     return `
-    <div style="display:flex; gap:14px; margin-bottom:14px; align-items:flex-start; flex-wrap:wrap;">
-      <div class="card" style="width:350px; flex-shrink:0;">
+    <div class="dep-stock-row" style="display:flex; gap:14px; margin-bottom:14px; align-items:flex-start; flex-wrap:wrap;">
+      <div class="card dep-stock-card" style="width:350px; flex-shrink:0;">
         <div class="card-header">
           <span>股票 #${i + 1}${s.name ? `　${s.name}` : ''}</span>
           ${depStocks.length > 1 ? `<button class="dep-icon-btn danger" title="移除此股票" onclick="depRemoveStock(${s.id})">−</button>` : ''}
@@ -1820,7 +1822,7 @@ function renderDepStocks() {
           </div>
         </div>
       </div>
-      <div style="flex:1; min-width:300px; max-width:520px;">
+      <div class="dep-fee-inline" style="flex:1; min-width:300px; max-width:520px;">
         ${r ? buildDepResultHtml(r) : ''}
       </div>
     </div>`;

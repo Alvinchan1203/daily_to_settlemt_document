@@ -33,7 +33,7 @@
 
     <!-- ===== 登記頁面 ===== -->
     <div id="tab-input" style="display:none">
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start">
+      <div class="input-grid">
 
         <!-- 左欄：輸入表單 -->
         <div class="card">
@@ -129,7 +129,7 @@
       </div>
 
       <!-- 匯總卡片 -->
-      <div style="display:grid; grid-template-columns:repeat(6,1fr); gap:10px; margin-bottom:20px" id="summaryCards"></div>
+      <div class="summary-grid" id="summaryCards"></div>
 
       <!-- 報告格式（本日專用）-->
       <div id="reportBox" class="card" style="display:none; margin-bottom:20px">
@@ -238,7 +238,7 @@
             <button class="dep-icon-btn primary" style="width:32px; height:32px; font-size:17px;" title="新增股票" onclick="depAddStock()">＋</button>
             <span style="font-size:13px; color:var(--text3);">新增股票</span>
           </div>
-          <div style="display:flex; gap:8px; margin-bottom:12px;">
+          <div class="dep-actions" style="display:flex; gap:8px; margin-bottom:12px;">
             <button id="depRunBtn" class="btn-primary" style="padding:9px 32px;" onclick="depRunAll()">計算費用</button>
             <button class="btn-secondary" style="padding:9px 20px;" onclick="depClearAll()">清除全部</button>
             <button class="btn-secondary" style="padding:9px 14px;" onclick="openDepHelp()">收費說明</button>
@@ -258,7 +258,7 @@
         <button id="calcSrcRealtime" type="button" style="padding:7px 16px; border:none; background:#fff; color:var(--text2); font-size:13px; cursor:pointer;" onclick="calcSetPriceSource('realtime')">etnet 即時價·預估</button>
       </div>
       <!-- 快速新增股票 -->
-      <div style="margin-bottom:4px; display:flex; gap:8px; align-items:center;">
+      <div class="calc-quick-row" style="margin-bottom:4px; display:flex; gap:8px; align-items:center;">
         <input id="calcQuickCodes" type="text" class="form-input" style="flex:1;"
           placeholder="輸入股票代號快速新增..."
           onkeydown="if(event.key==='Enter'){event.stopPropagation();calcBatchAddByCode(this.value);}" />
@@ -294,7 +294,7 @@
           </div>
 
           <!-- 按鈕 -->
-          <div style="display:flex; gap:8px; margin-bottom:12px;">
+          <div class="calc-actions" style="display:flex; gap:8px; margin-bottom:12px;">
             <button class="btn-primary" style="padding:9px 32px;" onclick="calcRunAll()">計算費用</button>
             <button class="btn-secondary" style="padding:9px 20px;" onclick="calcClearAll()">清除全部</button>
             <button id="calcHelpBtn" class="btn-secondary" style="display:none; padding:9px 14px;" onclick="openFeeHelp()">收費說明</button>
