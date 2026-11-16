@@ -609,17 +609,26 @@ textarea.form-input {
 
   .top-bar { padding: 0 16px; }
 
-  /* 分頁列：橫向滑動 */
+  /* 分頁列：全部顯示，分組自動換行（私用一組、公用一組） */
   .tab-bar {
     display: flex;
-    overflow-x: auto;
-    padding: 0 12px;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 12px;
   }
-  .tab-bar::-webkit-scrollbar { display: none; }
-  .tab-bar > div { flex-shrink: 0; }
-  .tab-item { padding: 14px 12px; font-size: 13px; }
+  .tab-bar > div { flex-wrap: wrap; gap: 8px; }
+  .tab-item {
+    padding: 8px 12px;
+    font-size: 12.5px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    margin-bottom: 0;
+    background: #fff;
+  }
+  .tab-item.active {
+    border-color: var(--blue);
+    background: var(--blue-bg);
+  }
 
   .main-content { padding: 16px 12px; }
 
