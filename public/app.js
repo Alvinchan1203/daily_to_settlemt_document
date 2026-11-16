@@ -94,7 +94,7 @@ function fmtDateDMY(iso) {
 document.getElementById('dateInput').value = todayStr;
 
 // 公用版模式（獨立網域 /calculator 路徑 / ?mode=pub）：只顯示公用分頁，免密碼
-const PUB_HOSTS = ['stock-fee-calculator.vercel.app'];
+const PUB_HOSTS = ['stock-fee-calculator-futu.vercel.app'];
 const PUB_MODE = new URLSearchParams(location.search).get('mode') === 'pub'
   || PUB_HOSTS.includes(location.hostname)
   || location.pathname.replace(/\/+$/, '') === '/calculator';
