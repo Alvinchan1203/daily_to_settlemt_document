@@ -46,6 +46,10 @@ async function doLogin() {
 }
 
 async function initApp() {
+  if (PUB_MODE) {
+    switchTab('calc-public-new');
+    return;
+  }
   if (appPassword) {
     const res = await _origFetch('/api/verify-password', {
       method: 'POST',
@@ -88,6 +92,26 @@ function fmtDateDMY(iso) {
   return p.length === 3 ? `${p[2]}-${p[1]}-${p[0]}` : iso;
 }
 document.getElementById('dateInput').value = todayStr;
+
+// 公用版模式（獨立網域 /calculator 路徑 / ?mode=pub）：只顯示公用分頁，免密碼
+const PUB_HOSTS = ['stock-fee-calculator.vercel.app'];
+const PUB_MODE = new URLSearchParams(location.search).get('mode') === 'pub'
+  || PUB_HOSTS.includes(location.hostname)
+  || location.pathname.replace(/\/+$/, '') === '/calculator';
+
+function applyPubMode() {
+  document.body.classList.add('pub-mode');
+  document.title = '實物股票收費計算';
+  const logo = document.querySelector('.logo-text');
+  if (logo) logo.textContent = '實物股票收費計算';
+  const privGroup = document.querySelector('.tab-group-private');
+  if (privGroup) privGroup.style.display = 'none';
+  const oldTab = document.querySelector('[data-tab="calc-public-old"]');
+  if (oldTab) oldTab.style.display = 'none';
+  const newTab = document.querySelector('[data-tab="calc-public-new"]');
+  if (newTab) newTab.textContent = '提取收費計算';
+}
+if (PUB_MODE) applyPubMode();
 
 // 分頁切換
 const PRIVATE_TABS = new Set(['input', 'stats', 'calc-old', 'calc-new']);
@@ -185,6 +209,7 @@ document.querySelectorAll('[data-tab]').forEach(link => {
     e.preventDefault();
     closeNavDrawer();
     const tab = e.currentTarget.dataset.tab;
+    if (PUB_MODE && (PRIVATE_TABS.has(tab) || tab === 'calc-public-old')) return;
     if (PRIVATE_TABS.has(tab) && !appPassword) {
       pendingTab = tab;
       const overlay = document.getElementById('loginOverlay');

@@ -687,6 +687,7 @@ textarea.form-input {
   }
   .tab-group-private::before { content: "私人版"; }
   .tab-group-public::before { content: "公用版"; }
+  body.pub-mode .tab-group-public::before { display: none; }
   .tab-item {
     padding: 13px 18px;
     font-size: 14px;
