@@ -10,18 +10,19 @@
 
   <!-- 頂部導航 -->
   <div class="top-bar">
+    <button id="menuBtn" class="menu-btn" type="button" aria-label="開啟分頁選單" onclick="openNavDrawer()">☰</button>
     <span class="logo-text">月會數據統計</span>
   </div>
 
-  <!-- 分頁標籤（底線式，grid 兩欄：左私用置左 | 右公用置右）-->
+  <!-- 分頁標籤（底線式，grid 兩欄：左私用置左 | 右公用置右；手機變左側抽屜）-->
   <div class="tab-bar">
-    <div style="display:flex;">
+    <div class="tab-group-private" style="display:flex;">
       <a class="tab-item" href="#" data-tab="calc-old">申請提取收費計算（舊收費）</a>
       <a class="tab-item" href="#" data-tab="calc-new">申請提取收費計算（新收費 11月12日起）</a>
       <a class="tab-item" href="#" data-tab="input">登記業務</a>
       <a class="tab-item" href="#" data-tab="stats">統計查看</a>
     </div>
-    <div style="display:flex;">
+    <div class="tab-group-public" style="display:flex;">
       <a class="tab-item" href="#" data-tab="lot">查詢每手股數</a>
       <a class="tab-item active" href="#" data-tab="calc-public-old">提取收費計算(公用版·舊收費)</a>
       <a class="tab-item" href="#" data-tab="calc-public-new">提取收費計算(公用版·新收費)</a>
@@ -336,6 +337,9 @@
     </div>
 
   </div>
+
+  <!-- 手機導航抽屜背景 -->
+  <div class="drawer-backdrop" onclick="closeNavDrawer()"></div>
 
   <!-- 登入密碼 overlay -->
   <div id="loginOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;align-items:center;justify-content:center;">

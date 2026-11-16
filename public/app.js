@@ -175,9 +175,15 @@ function depSetPriceSource(v) {
   applyPriceSourceBtn('dep', v);
 }
 
+// 手機導航抽屜
+function openNavDrawer() { document.body.classList.add('drawer-open'); }
+function closeNavDrawer() { document.body.classList.remove('drawer-open'); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeNavDrawer(); });
+
 document.querySelectorAll('[data-tab]').forEach(link => {
   link.addEventListener('click', e => {
     e.preventDefault();
+    closeNavDrawer();
     const tab = e.currentTarget.dataset.tab;
     if (PRIVATE_TABS.has(tab) && !appPassword) {
       pendingTab = tab;
