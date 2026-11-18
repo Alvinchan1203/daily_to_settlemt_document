@@ -1638,6 +1638,42 @@ function depClearAll() {
   depUpdateTotalBar();
 }
 
+async function depBatchAddByCode(text) {
+  const tokens = text.trim().split(/[\s,，]+/).map(t => t.trim()).filter(Boolean);
+  const entries = [];
+  const skipped = [];
+  for (const t of tokens) {
+    const parts = t.split('-');
+    const code = parts[0];
+    if (!/^\d+$/.test(code)) { skipped.push(t); continue; }
+    const nums = parts.slice(1).map(Number);
+    if (nums.some(n => !Number.isInteger(n) || n < 1)) { skipped.push(t); continue; }
+    if (parts.length === 4) {
+      entries.push({ code, secType: 'part', nCerts: nums[0], nDeeds: nums[1], totalShares: nums[2] });
+    } else if (parts.length === 3) {
+      entries.push({ code, secType: 'nonpart', nCerts: null, nDeeds: nums[0], totalShares: nums[1] });
+    } else {
+      skipped.push(t);
+    }
+  }
+  if (entries.length === 0) {
+    alert('請輸入有效格式：\n參與證券：700-1-1-1000（代號-證書張數-轉手紙張數-總股數）\n非參與證券：941-1-2000（代號-轉手紙張數-總股數）\n多隻股票以空格分隔');
+    return;
+  }
+  if (skipped.length) alert(`已忽略格式不正確嘅輸入：${skipped.join('、')}`);
+  depStocks = entries.map((e, i) => ({
+    id: depIdSeq + 1 + i, code: e.code, name: '', secType: e.secType, nCerts: e.nCerts, nDeeds: e.nDeeds, totalShares: e.totalShares,
+    closePrice: null, closeDate: null, priceKind: null, priceTime: null, manualNeeded: false, manualPriceInput: ''
+  }));
+  depIdSeq += entries.length;
+  depResults = null;
+  renderDepStocks();
+  depUpdateTotalBar();
+  const inputEl = document.getElementById('depQuickCodes');
+  if (inputEl) inputEl.value = '';
+  depRunAll();
+}
+
 function depUpdateField(id, field, value) {
   const s = depStocks.find(x => x.id === id);
   if (!s) return;

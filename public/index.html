@@ -232,6 +232,18 @@
         <button id="depSrcClose" type="button" style="padding:7px 16px; border:none; background:#1677FF; color:#fff; font-size:13px; cursor:pointer;" onclick="depSetPriceSource('close')">收市價·正式</button>
         <button id="depSrcRealtime" type="button" style="padding:7px 16px; border:none; background:#fff; color:var(--text2); font-size:13px; cursor:pointer;" onclick="depSetPriceSource('realtime')">etnet 即時價·預估</button>
       </div>
+      <!-- 快速新增股票 -->
+      <div class="calc-quick-row" style="margin-bottom:4px; display:flex; gap:8px; align-items:center;">
+        <input id="depQuickCodes" type="text" class="form-input" style="flex:1;"
+          placeholder="快速新增：700-1-1-1000 941-1-2000"
+          onkeydown="if(event.key==='Enter'){event.stopPropagation();depBatchAddByCode(this.value);}" />
+        <button class="btn-primary" style="white-space:nowrap;" onclick="depBatchAddByCode(document.getElementById('depQuickCodes').value)">新增並計算</button>
+      </div>
+      <div style="margin-bottom:14px; font-size:14px; color:#8C8C8C; display:flex; gap:16px; flex-wrap:wrap;">
+        <span><span style="color:#595959;">參與證券：</span>700-1-1-1000（代號-證書張數-轉手紙張數-總股數）</span>
+        <span><span style="color:#595959;">非參與證券：</span>941-1-2000（代號-轉手紙張數-總股數）</span>
+        <span><span style="color:#595959;">混合多隻：</span>700-1-1-1000 941-1-2000</span>
+      </div>
       <div class="calc-outer">
         <div class="calc-wrap">
           <div id="depStockList"></div>
