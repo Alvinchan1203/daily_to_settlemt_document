@@ -1645,13 +1645,15 @@ function depUpdateField(id, field, value) {
     s.code = value.trim();
     s.name = ''; s.closePrice = null; s.closeDate = null; s.priceKind = null; s.priceTime = null;
     s.manualNeeded = false; s.manualPriceInput = '';
-    if (depResults && depResults[id]) { delete depResults[id]; renderDepStocks(); depUpdateTotalBar(); }
+    if (depResults && depResults[id]) { delete depResults[id]; depUpdateTotalBar(); }
+    depClearCardInputs(id);
     return;
   }
   s[field] = parseInt(value, 10) || null;
-  if (s.closePrice && depResults && depResults[id]) {
-    depResults[id] = depCalcStock(s);
-    renderDepStocks();
+  if (s.closePrice && depResults) {
+    const r = depCalcStock(s);
+    if (r) depResults[id] = r; else delete depResults[id];
+    depRenderFee(id);
     depUpdateTotalBar();
   }
 }
@@ -1660,9 +1662,10 @@ function depSetType(id, value) {
   const s = depStocks.find(x => x.id === id);
   if (!s) return;
   s.secType = value;
-  if (depResults && depResults[id]) {
-    depResults[id] = depCalcStock(s);
-    renderDepStocks();
+  if (s.closePrice && depResults) {
+    const r = depCalcStock(s);
+    if (r) depResults[id] = r; else delete depResults[id];
+    depRenderFee(id);
     depUpdateTotalBar();
   }
 }
@@ -1796,6 +1799,26 @@ async function depRunAll() {
   }
 }
 
+function depRenderFee(id) {
+  const el = document.getElementById(`depFee_${id}`);
+  if (!el) return;
+  const r = depResults && depResults[id];
+  el.innerHTML = r ? buildDepResultHtml(r) : '';
+}
+
+function depClearCardInputs(id) {
+  const idx = depStocks.findIndex(x => x.id === id);
+  const nameEl = document.getElementById(`depName_${id}`);
+  if (nameEl && idx !== -1) nameEl.textContent = `股票 #${idx + 1}`;
+  const manEl = document.getElementById(`depManual_${id}`);
+  if (manEl) {
+    manEl.value = '';
+    manEl.style.borderColor = '';
+    if (manEl.nextElementSibling && manEl.nextElementSibling.tagName === 'DIV') manEl.nextElementSibling.remove();
+  }
+  depRenderFee(id);
+}
+
 function renderDepStocks() {
   const list = document.getElementById('depStockList');
   if (!list) return;
@@ -1805,7 +1828,7 @@ function renderDepStocks() {
     <div class="dep-stock-row" style="display:flex; gap:14px; margin-bottom:14px; align-items:flex-start; flex-wrap:wrap;">
       <div class="card dep-stock-card" style="width:350px; flex-shrink:0;">
         <div class="card-header">
-          <span>股票 #${i + 1}${s.name ? `　${s.name}` : ''}</span>
+          <span id="depName_${s.id}">股票 #${i + 1}${s.name ? `　${s.name}` : ''}</span>
           ${depStocks.length > 1 ? `<button class="dep-icon-btn danger" title="移除此股票" onclick="depRemoveStock(${s.id})">−</button>` : ''}
         </div>
         <div class="card-body" style="display:flex; flex-direction:column; gap:12px;">
@@ -1853,7 +1876,7 @@ function renderDepStocks() {
           </div>
         </div>
       </div>
-      <div class="dep-fee-inline" style="flex:1; min-width:300px; max-width:520px;">
+      <div class="dep-fee-inline" id="depFee_${s.id}" style="flex:1; min-width:300px; max-width:520px;">
         ${r ? buildDepResultHtml(r) : ''}
       </div>
     </div>`;
