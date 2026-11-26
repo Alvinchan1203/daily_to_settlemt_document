@@ -1143,7 +1143,7 @@ async function calcRunAll() {
       const marketValue = r2(closePrice * total);
       const hkscc       = r2(marketValue * CALC_HKSCC_RATE);
       const coBase      = r2(marketValue * CALC_CO_RATE);
-      const fracFee     = frac > 0 ? CALC_FRAC_FEE : 0;
+      const fracFee     = 0; // 2026-11-26 規則：一般提取唔收碎股附加費，只有特別拆細逐張收
       const coRaw       = r2(coBase + fracFee);
       const rawTotal    = r2(hkscc + coRaw);
       const grand       = Math.max(CALC_MIN_TOTAL, rawTotal);
@@ -1368,7 +1368,7 @@ function calcGenerateEmail() {
   const feeDescHtml = calcFeeVersion === 'old'
     ? `1.&nbsp;&nbsp;&nbsp;&nbsp;富途證券手續費（每隻股票每手港幣1.50元，非整手碎股或特別要求拆細提取則收取每張100元行政費，每隻股票提取申請最低收費為港幣500元）及<br/>
 2.&nbsp;&nbsp;&nbsp;&nbsp;香港中央結算有限公司收費（每隻每手股票港幣3.50元，碎股亦視作一手）。<br/>`
-    : `1.&nbsp;&nbsp;&nbsp;&nbsp;富途證券手續費（按申請日前一個交易日之收市價市值0.015%計算，非整手碎股或特別要求拆細提取則收取每張100元行政費，每隻股票提取申請所有項目總和最低收費為港幣500元）及<br/>
+    : `1.&nbsp;&nbsp;&nbsp;&nbsp;富途證券手續費（按申請日前一個交易日之收市價市值0.015%計算，特別要求拆細提取則收取每張100元行政費，含碎股之證書每張另收取100元碎股附加費，每隻股票提取申請所有項目總和最低收費為港幣500元）及<br/>
 2.&nbsp;&nbsp;&nbsp;&nbsp;香港中央結算有限公司收費（按申請日前一個交易日之收市價市值0.015%計算）。<br/>`;
 
   const emailHtml = `<div style="font-family:sans-serif;line-height:1.6;color:#1A1A1A;max-width:700px;">
